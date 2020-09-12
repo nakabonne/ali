@@ -8,7 +8,7 @@ Another load testing tool, inspired by [vegeta](https://github.com/tsenart/veget
 
 </div>
 
-Generates HTTP load and plots the results in real-time. `ali` comes with a simple terminal based UI.
+`ali` comes with a simple terminal based UI, lets you generate HTTP requests and plot the results in real-time. With the help of [vegeta](https://github.com/tsenart/vegeta), it's available as a versatile load testing tool.
 
 ## Installation
 
