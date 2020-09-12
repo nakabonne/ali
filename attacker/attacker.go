@@ -1,8 +1,11 @@
 package attacker
 
 import (
+	"context"
 	"net/http"
 	"time"
+
+	"github.com/k0kubun/pp"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
@@ -32,7 +35,8 @@ type Result struct {
 // Attack keeps the request running for the specified period of time.
 // Results are sent to the given channel as soon as they arrive.
 // When the attack is over, it gives back final statistics.
-func Attack(target string, resCh chan *Result, opts Options) *Metrics {
+func Attack(ctx context.Context, target string, resCh chan *Result, opts Options) *Metrics {
+	pp.Println("start attacking")
 	if opts.Rate == 0 {
 		opts.Rate = defaultRate
 	}
@@ -53,16 +57,23 @@ func Attack(target string, resCh chan *Result, opts Options) *Metrics {
 	attacker := vegeta.NewAttacker()
 
 	var metrics vegeta.Metrics
+
 	for res := range attacker.Attack(targeter, rate, opts.Duration, "main") {
+		// TODO: Stop if ctx is expired.
+		/*if <-ctx.Done() {
+			return newMetrics(&metrics)
+		}*/
 		resCh <- &Result{Latency: res.Latency}
 		metrics.Add(res)
 	}
 	metrics.Close()
+	pp.Println("vegeta metrics", metrics)
 
 	return newMetrics(&metrics)
 }
 
 type (
+	// Metrics wraps vegeta.Metrics to avoid dependency on it.
 	Metrics struct {
 		Latencies LatencyMetrics
 	}

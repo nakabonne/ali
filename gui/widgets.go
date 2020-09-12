@@ -2,14 +2,16 @@ package gui
 
 import (
 	"context"
-	"math"
 	"time"
 
+	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/textinput"
+
+	"github.com/nakabonne/ali/attacker"
 )
 
 // redrawInterval is how often termdash redraws the screen.
@@ -38,12 +40,6 @@ func newWidgets(ctx context.Context, c *container.Container) (*widgets, error) {
 
 // newLineChart returns a line plotChart that displays a heartbeat-like progression.
 func newLineChart(ctx context.Context) (*linechart.LineChart, error) {
-	var inputs []float64
-	for i := 0; i < 100; i++ {
-		v := math.Pow(math.Sin(float64(i)), 63) * math.Sin(float64(i)+1.5) * 8
-		inputs = append(inputs, v)
-	}
-
 	lc, err := linechart.New(
 		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
 		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
@@ -52,41 +48,33 @@ func newLineChart(ctx context.Context) (*linechart.LineChart, error) {
 	if err != nil {
 		return nil, err
 	}
-	step := 0
-	go periodic(ctx, redrawInterval/3, func() error {
-		step = (step + 1) % len(inputs)
-		return lc.Series("heartbeat", rotateFloats(inputs, step),
-			linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
-			linechart.SeriesXLabels(map[int]string{
-				0: "zero",
-			}),
-		)
-	})
+
+	resultCh := make(chan *attacker.Result)
+	go func() {
+		// TODO: Enalble to poplulate from input
+		metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: 50, Duration: 10 * time.Second})
+		pp.Println(metrics)
+	}()
+	go redrawChart(ctx, lc, resultCh)
+
 	return lc, nil
 }
 
-// periodic executes the provided closure periodically every interval.
-// Exits when the context expires.
-func periodic(ctx context.Context, interval time.Duration, fn func() error) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+func redrawChart(ctx context.Context, lineChart *linechart.LineChart, resultCh chan *attacker.Result) {
+	values := []float64{}
 	for {
 		select {
-		case <-ticker.C:
-			if err := fn(); err != nil {
-				panic(err)
-			}
 		case <-ctx.Done():
 			return
+		case res := <-resultCh:
+			pp.Println("latency", res.Latency/time.Millisecond)
+			values = append(values, float64(res.Latency/time.Millisecond))
+			lineChart.Series("plot", values,
+				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
+				linechart.SeriesXLabels(map[int]string{
+					0: "zero",
+				}),
+			)
 		}
 	}
-}
-
-// rotateFloats returns a new slice with inputs rotated by step.
-// I.e. for a step of one:
-//   inputs[0] -> inputs[len(inputs)-1]
-//   inputs[1] -> inputs[0]
-// And so on.
-func rotateFloats(inputs []float64, step int) []float64 {
-	return append(inputs[step:], inputs[:step]...)
 }

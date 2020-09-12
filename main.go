@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 
+	"github.com/k0kubun/pp"
 	flag "github.com/spf13/pflag"
 
 	"github.com/nakabonne/ali/gui"
@@ -55,6 +58,7 @@ func (c *cli) run() int {
 		fmt.Fprintf(c.stderr, "version=%s, commit=%s, buildDate=%s, os=%s, arch=%s\n", version, commit, date, runtime.GOOS, runtime.GOARCH)
 		return 0
 	}
+	setDebug(nil, c.debug)
 
 	if err := gui.Run(); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s", err.Error())
@@ -62,4 +66,19 @@ func (c *cli) run() int {
 	}
 
 	return 0
+}
+
+// Makes a new file under the working directory only when debug use.
+func setDebug(w io.Writer, debug bool) {
+	if !debug {
+		pp.SetDefaultOutput(ioutil.Discard)
+	}
+	if w == nil {
+		var err error
+		w, err = os.OpenFile(filepath.Join(".", "ali-debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			panic(err)
+		}
+	}
+	pp.SetDefaultOutput(w)
 }
