@@ -26,7 +26,7 @@ type widgets struct {
 }
 
 func newWidgets(ctx context.Context, c *container.Container) (*widgets, error) {
-	l, err := newLineChart(ctx)
+	l, err := newLineChart()
 	if err != nil {
 		return nil, err
 	}
@@ -38,26 +38,12 @@ func newWidgets(ctx context.Context, c *container.Container) (*widgets, error) {
 	}, nil
 }
 
-// newLineChart returns a line plotChart that displays a heartbeat-like progression.
-func newLineChart(ctx context.Context) (*linechart.LineChart, error) {
-	lc, err := linechart.New(
+func newLineChart() (*linechart.LineChart, error) {
+	return linechart.New(
 		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
 		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
 		linechart.XLabelCellOpts(cell.FgColor(cell.ColorGreen)),
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	resultCh := make(chan *attacker.Result)
-	go func() {
-		// TODO: Enalble to poplulate from input
-		metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: 50, Duration: 10 * time.Second})
-		pp.Println(metrics)
-	}()
-	go redrawChart(ctx, lc, resultCh)
-
-	return lc, nil
 }
 
 func redrawChart(ctx context.Context, lineChart *linechart.LineChart, resultCh chan *attacker.Result) {
