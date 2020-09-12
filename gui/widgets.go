@@ -6,9 +6,8 @@ import (
 
 	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash/cell"
-	"github.com/mum4k/termdash/container"
-	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/linechart"
+	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
 
 	"github.com/nakabonne/ali/attacker"
@@ -20,21 +19,35 @@ const (
 )
 
 type widgets struct {
-	URLInput     *textinput.TextInput
-	attackButton *button.Button
-	plotChart    *linechart.LineChart
+	urlInput  *textinput.TextInput
+	plotChart *linechart.LineChart
+	metrics   *text.Text
+	navi      *text.Text
 }
 
-func newWidgets(ctx context.Context, c *container.Container) (*widgets, error) {
-	l, err := newLineChart()
+func newWidgets() (*widgets, error) {
+	lc, err := newLineChart()
+	if err != nil {
+		return nil, err
+	}
+	rt, err := newRollText()
+	if err != nil {
+		return nil, err
+	}
+	wt, err := newWrapText("Ctrl-c: quit, Space: attack")
+	if err != nil {
+		return nil, err
+	}
+	ti, err := newTextInput()
 	if err != nil {
 		return nil, err
 	}
 
 	return &widgets{
-		URLInput:     nil,
-		attackButton: nil,
-		plotChart:    l,
+		urlInput:  ti,
+		plotChart: lc,
+		metrics:   rt,
+		navi:      wt,
 	}, nil
 }
 
@@ -44,6 +57,38 @@ func newLineChart() (*linechart.LineChart, error) {
 		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
 		linechart.XLabelCellOpts(cell.FgColor(cell.ColorGreen)),
 	)
+}
+
+func newRollText() (*text.Text, error) {
+	return text.New(text.RollContent())
+}
+
+func newWrapText(s string) (*text.Text, error) {
+	t, err := text.New(text.WrapAtWords())
+	if err != nil {
+		return nil, err
+	}
+	if err := t.Write(s); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func newTextInput() (*textinput.TextInput, error) {
+	input, err := textinput.New(
+		textinput.Label("Target URL: ", cell.FgColor(cell.ColorBlue)),
+		textinput.MaxWidthCells(20),
+		textinput.PlaceHolder("enter any text"),
+		textinput.OnSubmit(func(text string) error {
+			// TODO: Handle on submit action, for instance using channel.
+			pp.Println("input text", text)
+			return nil
+		}),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return input, err
 }
 
 func redrawChart(ctx context.Context, lineChart *linechart.LineChart, resultCh chan *attacker.Result) {

@@ -34,7 +34,7 @@ func Run() error {
 		return fmt.Errorf("failed to generate container: %w", err)
 	}
 
-	w, err := newWidgets(ctx, c)
+	w, err := newWidgets()
 	if err != nil {
 		return fmt.Errorf("failed to generate widgets: %w", err)
 	}
@@ -50,7 +50,7 @@ func Run() error {
 		switch k.Key {
 		case keyboard.KeyEsc, keyboard.KeyCtrlC:
 			cancel()
-		case keyboard.KeyEnter:
+		case keyboard.KeySpace:
 			resultCh := make(chan *attacker.Result)
 			go func() {
 				// TODO: Enalble to poplulate from input
@@ -65,19 +65,22 @@ func Run() error {
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
-	rows := []grid.Element{
-		grid.RowHeightPerc(99,
-			grid.Widget(w.plotChart,
-				container.Border(linestyle.Light),
-				container.BorderTitle("Plot"),
-			),
-		),
-	}
-	col := grid.ColWidthPerc(99, rows...)
+	raw1 := grid.RowHeightPerc(50,
+		grid.ColWidthPerc(99, grid.Widget(w.plotChart, container.Border(linestyle.Light), container.BorderTitle("Plot"))),
+	)
+	raw2 := grid.RowHeightPerc(47,
+		grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
+		grid.ColWidthPerc(49, grid.Widget(w.metrics, container.Border(linestyle.Light), container.BorderTitle("Metrics"))),
+	)
+	raw3 := grid.RowHeightPerc(2,
+		grid.ColWidthPerc(99, grid.Widget(w.navi, container.Border(linestyle.Light))),
+	)
 
 	builder := grid.New()
 	builder.Add(
-		col,
+		raw1,
+		raw2,
+		raw3,
 	)
 
 	return builder.Build()
