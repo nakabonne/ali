@@ -17,6 +17,7 @@ const rootID = "root"
 
 func Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	t, err := termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
 	if err != nil {

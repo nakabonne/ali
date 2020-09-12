@@ -49,6 +49,7 @@ func main() {
 
 	os.Exit(c.run())
 }
+
 func (c *cli) run() int {
 	if c.version {
 		fmt.Fprintf(c.stderr, "version=%s, commit=%s, buildDate=%s, os=%s, arch=%s\n", version, commit, date, runtime.GOOS, runtime.GOARCH)
