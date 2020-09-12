@@ -36,7 +36,6 @@ type Result struct {
 // Results are sent to the given channel as soon as they arrive.
 // When the attack is over, it gives back final statistics.
 func Attack(ctx context.Context, target string, resCh chan *Result, opts Options) *Metrics {
-	pp.Println("start attacking")
 	if opts.Rate == 0 {
 		opts.Rate = defaultRate
 	}
@@ -59,12 +58,13 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	var metrics vegeta.Metrics
 
 	for res := range attacker.Attack(targeter, rate, opts.Duration, "main") {
-		// TODO: Stop if ctx is expired.
-		/*if <-ctx.Done() {
-			return newMetrics(&metrics)
-		}*/
-		resCh <- &Result{Latency: res.Latency}
-		metrics.Add(res)
+		select {
+		case <-ctx.Done():
+			attacker.Stop()
+		default:
+			resCh <- &Result{Latency: res.Latency}
+			metrics.Add(res)
+		}
 	}
 	metrics.Close()
 	pp.Println("vegeta metrics", metrics)

@@ -72,7 +72,7 @@ func redrawChart(ctx context.Context, lineChart *linechart.LineChart, resultCh c
 			lineChart.Series("plot", values,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
-					0: "zero",
+					0: "num",
 				}),
 			)
 		}
