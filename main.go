@@ -72,6 +72,7 @@ func (c *cli) run() int {
 func setDebug(w io.Writer, debug bool) {
 	if !debug {
 		pp.SetDefaultOutput(ioutil.Discard)
+		return
 	}
 	if w == nil {
 		var err error

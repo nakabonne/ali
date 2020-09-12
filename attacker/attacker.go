@@ -16,6 +16,11 @@ const (
 	defaultMethod   = http.MethodGet
 )
 
+type Attacker interface {
+	Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result
+	Stop()
+}
+
 // Options provides optional settings to attack.
 type Options struct {
 	Rate     int
@@ -23,8 +28,7 @@ type Options struct {
 	Method   string
 	Body     []byte
 	Header   http.Header
-	// TODO: Make attacker pluggable to make it easy unit tests.
-	//Attacker func(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result
+	Attacker Attacker
 }
 
 // Result contains the results of a single Target hit.
@@ -36,6 +40,9 @@ type Result struct {
 // Results are sent to the given channel as soon as they arrive.
 // When the attack is over, it gives back final statistics.
 func Attack(ctx context.Context, target string, resCh chan *Result, opts Options) *Metrics {
+	if target == "" {
+		return nil
+	}
 	if opts.Rate == 0 {
 		opts.Rate = defaultRate
 	}
@@ -45,6 +52,9 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if opts.Method == "" {
 		opts.Method = defaultMethod
 	}
+	if opts.Attacker == nil {
+		opts.Attacker = vegeta.NewAttacker()
+	}
 
 	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
@@ -53,14 +63,13 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 		Body:   opts.Body,
 		Header: opts.Header,
 	})
-	attacker := vegeta.NewAttacker()
 
 	var metrics vegeta.Metrics
 
-	for res := range attacker.Attack(targeter, rate, opts.Duration, "main") {
+	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
 		select {
 		case <-ctx.Done():
-			attacker.Stop()
+			opts.Attacker.Stop()
 		default:
 			resCh <- &Result{Latency: res.Latency}
 			metrics.Add(res)
