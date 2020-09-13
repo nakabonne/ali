@@ -112,3 +112,7 @@ func newMetrics(m *vegeta.Metrics) *Metrics {
 		},
 	}
 }
+
+func (m *Metrics) String() string {
+	return "foo"
+}

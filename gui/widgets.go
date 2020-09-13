@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"context"
 	"time"
 
 	"github.com/k0kubun/pp"
@@ -9,8 +8,6 @@ import (
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
-
-	"github.com/nakabonne/ali/attacker"
 )
 
 // redrawInterval is how often termdash redraws the screen.
@@ -30,11 +27,11 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	rt, err := newRollText()
+	rt, err := newRollText("Give the target URL and press Space, then the attack will be launched.")
 	if err != nil {
 		return nil, err
 	}
-	wt, err := newWrapText("Ctrl-c: quit, Space: attack")
+	wt, err := newRollText("Ctrl-c: quit, Space: attack")
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +56,15 @@ func newLineChart() (*linechart.LineChart, error) {
 	)
 }
 
-func newRollText() (*text.Text, error) {
-	return text.New(text.RollContent())
+func newRollText(s string) (*text.Text, error) {
+	t, err := text.New(text.RollContent())
+	if err != nil {
+		return nil, err
+	}
+	if err := t.Write(s); err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func newWrapText(s string) (*text.Text, error) {
@@ -89,22 +93,4 @@ func newTextInput() (*textinput.TextInput, error) {
 		return nil, err
 	}
 	return input, err
-}
-
-func redrawChart(ctx context.Context, latency *linechart.LineChart, resultCh chan *attacker.Result, maxSize int) {
-	values := make([]float64, 0, maxSize)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case res := <-resultCh:
-			values = append(values, float64(res.Latency/time.Millisecond))
-			latency.Series("latency", values,
-				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
-				linechart.SeriesXLabels(map[int]string{
-					0: "req",
-				}),
-			)
-		}
-	}
 }

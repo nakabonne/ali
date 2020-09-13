@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
@@ -46,21 +45,28 @@ func Run() error {
 		return fmt.Errorf("failed to update container: %w", err)
 	}
 
+	d := &drawer{
+		widgets:  w,
+		chartsCh: make(chan *attacker.Result),
+		reportCh: make(chan string),
+	}
+	go d.redrawReport(ctx)
+
 	keybinds := func(k *terminalapi.Keyboard) {
 		switch k.Key {
 		case keyboard.KeyEsc, keyboard.KeyCtrlC:
 			cancel()
 		case keyboard.KeySpace:
-			resultCh := make(chan *attacker.Result)
 			// TODO: Enalble to poplulate from input
 			rate := 50
-			duration, _ := time.ParseDuration("10s")
+			duration, _ := time.ParseDuration("2s")
 			requestNum := rate * int(duration/time.Second)
-			go func() {
-				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: rate, Duration: duration})
-				pp.Println(metrics)
-			}()
-			go redrawChart(ctx, w.latencyChart, resultCh, requestNum)
+			go d.redrawChart(ctx, requestNum)
+			go func(ctx context.Context, d *drawer, r int, du time.Duration) {
+				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", d.chartsCh, attacker.Options{Rate: r, Duration: du})
+				//close(ch) TODO: Gracefully stop redrawChart goroutine.
+				d.reportCh <- metrics.String()
+			}(ctx, d, rate, duration)
 		}
 	}
 
@@ -71,11 +77,11 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(50,
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency"))),
 	)
-	raw2 := grid.RowHeightPerc(47,
+	raw2 := grid.RowHeightPerc(45,
 		grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
 		grid.ColWidthPerc(49, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
-	raw3 := grid.RowHeightPerc(2,
+	raw3 := grid.RowHeightPerc(4,
 		grid.ColWidthPerc(99, grid.Widget(w.navi, container.Border(linestyle.Light))),
 	)
 
