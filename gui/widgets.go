@@ -19,10 +19,10 @@ const (
 )
 
 type widgets struct {
-	urlInput  *textinput.TextInput
-	plotChart *linechart.LineChart
-	metrics   *text.Text
-	navi      *text.Text
+	urlInput     *textinput.TextInput
+	latencyChart *linechart.LineChart
+	reportText   *text.Text
+	navi         *text.Text
 }
 
 func newWidgets() (*widgets, error) {
@@ -44,10 +44,10 @@ func newWidgets() (*widgets, error) {
 	}
 
 	return &widgets{
-		urlInput:  ti,
-		plotChart: lc,
-		metrics:   rt,
-		navi:      wt,
+		urlInput:     ti,
+		latencyChart: lc,
+		reportText:   rt,
+		navi:         wt,
 	}, nil
 }
 
@@ -78,9 +78,9 @@ func newTextInput() (*textinput.TextInput, error) {
 	input, err := textinput.New(
 		textinput.Label("Target URL: ", cell.FgColor(cell.ColorBlue)),
 		textinput.MaxWidthCells(20),
-		textinput.PlaceHolder("enter any text"),
+		textinput.PlaceHolder("enter target URL"),
 		textinput.OnSubmit(func(text string) error {
-			// TODO: Handle on submit action, for instance using channel.
+			// TODO: Handle on submit action, for example, using channel.
 			pp.Println("input text", text)
 			return nil
 		}),

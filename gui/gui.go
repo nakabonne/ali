@@ -60,7 +60,7 @@ func Run() error {
 				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: rate, Duration: duration})
 				pp.Println(metrics)
 			}()
-			go redrawChart(ctx, w.plotChart, resultCh, requestNum)
+			go redrawChart(ctx, w.latencyChart, resultCh, requestNum)
 		}
 	}
 
@@ -69,11 +69,11 @@ func Run() error {
 
 func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(50,
-		grid.ColWidthPerc(99, grid.Widget(w.plotChart, container.Border(linestyle.Light), container.BorderTitle("Plot"))),
+		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency"))),
 	)
 	raw2 := grid.RowHeightPerc(47,
 		grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
-		grid.ColWidthPerc(49, grid.Widget(w.metrics, container.Border(linestyle.Light), container.BorderTitle("Metrics"))),
+		grid.ColWidthPerc(49, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
 	raw3 := grid.RowHeightPerc(2,
 		grid.ColWidthPerc(99, grid.Widget(w.navi, container.Border(linestyle.Light))),
