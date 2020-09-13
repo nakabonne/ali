@@ -13,3 +13,10 @@ Another load testing tool, inspired by [vegeta](https://github.com/tsenart/veget
 ## Installation
 
 Executables are available through the [releases page](https://github.com/nakabonne/ali/releases).
+
+## Features
+#### Mouse support
+
+[gif animations]
+
+## Alternatives

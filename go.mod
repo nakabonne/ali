@@ -10,4 +10,5 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tsenart/vegeta/v12 v12.8.3
+	gopkg.in/yaml.v2 v2.3.0
 )

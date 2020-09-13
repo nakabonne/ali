@@ -31,7 +31,7 @@ type Options struct {
 	Attacker Attacker
 }
 
-// Result contains the results of a single Target hit.
+// Result contains the results of a single HTTP request.
 type Result struct {
 	Latency time.Duration
 }
@@ -79,40 +79,4 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	pp.Println("vegeta metrics", metrics)
 
 	return newMetrics(&metrics)
-}
-
-type (
-	// Metrics wraps vegeta.Metrics to avoid dependency on it.
-	Metrics struct {
-		Latencies LatencyMetrics
-	}
-	LatencyMetrics struct {
-		Total time.Duration
-		Mean  time.Duration
-		P50   time.Duration
-		P90   time.Duration
-		P95   time.Duration
-		P99   time.Duration
-		Max   time.Duration
-		Min   time.Duration
-	}
-)
-
-func newMetrics(m *vegeta.Metrics) *Metrics {
-	return &Metrics{
-		Latencies: LatencyMetrics{
-			Total: m.Latencies.Total,
-			Mean:  m.Latencies.Mean,
-			P50:   m.Latencies.P50,
-			P90:   m.Latencies.P90,
-			P95:   m.Latencies.P95,
-			P99:   m.Latencies.P99,
-			Max:   m.Latencies.Max,
-			Min:   m.Latencies.Min,
-		},
-	}
-}
-
-func (m *Metrics) String() string {
-	return "foo"
 }
