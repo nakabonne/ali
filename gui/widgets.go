@@ -91,19 +91,18 @@ func newTextInput() (*textinput.TextInput, error) {
 	return input, err
 }
 
-func redrawChart(ctx context.Context, lineChart *linechart.LineChart, resultCh chan *attacker.Result) {
-	values := []float64{}
+func redrawChart(ctx context.Context, latency *linechart.LineChart, resultCh chan *attacker.Result, maxSize int) {
+	values := make([]float64, 0, maxSize)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case res := <-resultCh:
-			pp.Println("latency", res.Latency/time.Millisecond)
 			values = append(values, float64(res.Latency/time.Millisecond))
-			lineChart.Series("plot", values,
+			latency.Series("latency", values,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
-					0: "num",
+					0: "req",
 				}),
 			)
 		}

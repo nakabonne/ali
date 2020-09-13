@@ -52,12 +52,15 @@ func Run() error {
 			cancel()
 		case keyboard.KeySpace:
 			resultCh := make(chan *attacker.Result)
+			// TODO: Enalble to poplulate from input
+			rate := 50
+			duration, _ := time.ParseDuration("10s")
+			requestNum := rate * int(duration/time.Second)
 			go func() {
-				// TODO: Enalble to poplulate from input
-				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: 50, Duration: 10 * time.Second})
+				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", resultCh, attacker.Options{Rate: rate, Duration: duration})
 				pp.Println(metrics)
 			}()
-			go redrawChart(ctx, w.plotChart, resultCh)
+			go redrawChart(ctx, w.plotChart, resultCh, requestNum)
 		}
 	}
 
