@@ -16,7 +16,7 @@ type drawer struct {
 	chartsCh chan *attacker.Result
 	reportCh chan string
 
-	// Indicates if charts are drawing.
+	// aims to avoid to perform multiple `redrawChart`.
 	chartDrawing bool
 }
 

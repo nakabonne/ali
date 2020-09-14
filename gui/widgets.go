@@ -32,11 +32,11 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	reportText, err := newRollText("Give the target URL and press Space, then the attack will be launched.")
+	reportText, err := newRollText("Give the target URL and press Enter, then the attack will be launched.")
 	if err != nil {
 		return nil, err
 	}
-	navi, err := newRollText("Ctrl-c: quit, Space: attack")
+	navi, err := newRollText("Ctrl-c: quit, Enter: attack")
 	if err != nil {
 		return nil, err
 	}
@@ -95,10 +95,5 @@ func newTextInput(label, placeHolder string) (*textinput.TextInput, error) {
 		textinput.Label(label, cell.FgColor(cell.ColorBlue)),
 		textinput.MaxWidthCells(99),
 		textinput.PlaceHolder(placeHolder),
-		textinput.OnSubmit(func(text string) error {
-			// TODO: Handle on submit action, for example, using channel.
-			pp.Println("input text", text)
-			return nil
-		}),
 	)
 }

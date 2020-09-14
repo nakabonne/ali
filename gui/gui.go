@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/mum4k/termdash"
@@ -60,19 +61,22 @@ func Run() error {
 func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
 	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
-		case keyboard.KeyEsc, keyboard.KeyCtrlC:
+		case keyboard.KeyCtrlC: // Quit
 			cancel()
-		case keyboard.KeySpace:
+		case keyboard.KeyEnter: // Attack
 			if dr.chartDrawing {
 				return
 			}
-			// TODO: Enalble to poplulate from input
 			var (
 				rate        = 10
 				duration, _ = time.ParseDuration("2s")
 				requestNum  = rate * int(duration/time.Second)
-				target      = "http://34.84.111.163:9898"
+				target      = dr.widgets.urlInput.Read()
 			)
+			if _, err := url.ParseRequestURI(target); err != nil {
+				dr.reportCh <- fmt.Sprintf("bad URL: %v", err)
+				return
+			}
 			// To pre-allocate, run redrawChart on a per-attack basis.
 			go dr.redrawChart(ctx, requestNum)
 			go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
