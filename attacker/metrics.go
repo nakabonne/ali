@@ -8,6 +8,7 @@ import (
 )
 
 // Metrics wraps "vegeta.Metrics" to avoid dependency on it.
+// TODO: Add more fields
 type Metrics struct {
 	Latencies LatencyMetrics `json:"latencies"`
 }

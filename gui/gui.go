@@ -52,29 +52,36 @@ func Run() error {
 	}
 	go d.redrawReport(ctx)
 
-	keybinds := func(k *terminalapi.Keyboard) {
+	k := keybinds(ctx, cancel, d)
+
+	return termdash.Run(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
+}
+
+func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
+	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
 		case keyboard.KeyEsc, keyboard.KeyCtrlC:
 			cancel()
 		case keyboard.KeySpace:
-			if d.chartDrawing {
+			if dr.chartDrawing {
 				return
 			}
 			// TODO: Enalble to poplulate from input
-			rate := 10
-			duration, _ := time.ParseDuration("2s")
-			requestNum := rate * int(duration/time.Second)
+			var (
+				rate        = 10
+				duration, _ = time.ParseDuration("2s")
+				requestNum  = rate * int(duration/time.Second)
+				target      = "http://34.84.111.163:9898"
+			)
 			// To pre-allocate, run redrawChart on a per-attack basis.
-			go d.redrawChart(ctx, requestNum)
-			go func(ctx context.Context, d *drawer, r int, du time.Duration) {
-				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", d.chartsCh, attacker.Options{Rate: r, Duration: du})
+			go dr.redrawChart(ctx, requestNum)
+			go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
+				metrics := attacker.Attack(ctx, t, d.chartsCh, attacker.Options{Rate: r, Duration: du})
 				d.reportCh <- metrics.String()
 				d.chartsCh <- &attacker.Result{End: true}
-			}(ctx, d, rate, duration)
+			}(ctx, dr, target, rate, duration)
 		}
 	}
-
-	return termdash.Run(ctx, t, c, termdash.KeyboardSubscriber(keybinds), termdash.RedrawInterval(redrawInterval))
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
