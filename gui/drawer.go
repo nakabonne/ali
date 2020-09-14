@@ -13,7 +13,8 @@ import (
 
 type drawer struct {
 	widgets  *widgets
-	chartsCh chan *attacker.Result
+	chartCh  chan *attacker.Result
+	donutCh  chan bool
 	reportCh chan string
 
 	// aims to avoid to perform multiple `redrawChart`.
@@ -31,10 +32,12 @@ L:
 		select {
 		case <-ctx.Done():
 			break L
-		case res := <-d.chartsCh:
+		case res := <-d.chartCh:
 			if res.End {
+				d.donutCh <- true
 				break L
 			}
+			d.donutCh <- false
 			values = append(values, float64(res.Latency/time.Millisecond))
 			d.widgets.latencyChart.Series("latency", values,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
@@ -45,6 +48,24 @@ L:
 		}
 	}
 	d.chartDrawing = false
+}
+
+func (d *drawer) redrawDonut(ctx context.Context, maxSize int) {
+	var count float64
+	size := float64(maxSize)
+	d.widgets.progressDonut.Percent(0)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case end := <-d.donutCh:
+			if end {
+				return
+			}
+			count++
+			d.widgets.progressDonut.Percent(int(count / size * 100))
+		}
+	}
 }
 
 func (d *drawer) redrawReport(ctx context.Context) {

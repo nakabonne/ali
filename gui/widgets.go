@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/mum4k/termdash/cell"
+	"github.com/mum4k/termdash/widgets/donut"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
@@ -22,6 +23,7 @@ type widgets struct {
 	bodyInput      *textinput.TextInput
 	latencyChart   *linechart.LineChart
 	reportText     *text.Text
+	progressDonut  *donut.Donut
 	navi           *text.Text
 }
 
@@ -58,6 +60,10 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
+	progressDonut, err := newDonut()
+	if err != nil {
+		return nil, err
+	}
 	return &widgets{
 		urlInput:       urlInput,
 		rateLimitInput: rateLimitInput,
@@ -66,6 +72,7 @@ func newWidgets() (*widgets, error) {
 		bodyInput:      bodyInput,
 		latencyChart:   latencyChart,
 		reportText:     reportText,
+		progressDonut:  progressDonut,
 		navi:           navi,
 	}, nil
 }
@@ -94,5 +101,11 @@ func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, e
 		textinput.Label(label, cell.FgColor(cell.ColorWhite)),
 		textinput.MaxWidthCells(cells),
 		textinput.PlaceHolder(placeHolder),
+	)
+}
+
+func newDonut() (*donut.Donut, error) {
+	return donut.New(
+		donut.CellOpts(cell.FgColor(cell.ColorGreen)),
 	)
 }

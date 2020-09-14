@@ -50,7 +50,8 @@ func Run() error {
 
 	d := &drawer{
 		widgets:  w,
-		chartsCh: make(chan *attacker.Result),
+		chartCh:  make(chan *attacker.Result),
+		donutCh:  make(chan bool),
 		reportCh: make(chan string),
 	}
 	go d.redrawReport(ctx)
@@ -76,7 +77,8 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 				grid.ColWidthPerc(49, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
 			),
 		),
-		grid.ColWidthPerc(69, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
+		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
+		grid.ColWidthPerc(34, grid.Widget(w.progressDonut, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
 	)
 	raw3 := grid.RowHeightFixed(1,
 		grid.ColWidthFixed(100, grid.Widget(w.navi, container.Border(linestyle.Light))),
@@ -112,6 +114,7 @@ func attack(ctx context.Context, dr *drawer) {
 		rate     int
 		duration time.Duration
 		method   string
+		body     string
 		err      error
 	)
 	target = dr.widgets.urlInput.Read()
@@ -119,14 +122,18 @@ func attack(ctx context.Context, dr *drawer) {
 		dr.reportCh <- fmt.Sprintf("Bad URL: %v", err)
 		return
 	}
-	if s := dr.widgets.rateLimitInput.Read(); s != "" {
+	if s := dr.widgets.rateLimitInput.Read(); s == "" {
+		rate = attacker.DefaultRate
+	} else {
 		rate, err = strconv.Atoi(s)
 		if err != nil {
 			dr.reportCh <- fmt.Sprintf("Given rate limit %q isn't integer: %v", s, err)
 			return
 		}
 	}
-	if s := dr.widgets.durationInput.Read(); s != "" {
+	if s := dr.widgets.durationInput.Read(); s == "" {
+		duration = attacker.DefaultDuration
+	} else {
 		duration, err = time.ParseDuration(s)
 		if err != nil {
 			dr.reportCh <- fmt.Sprintf("Unparseable duration %q: %v", s, err)
@@ -139,13 +146,16 @@ func attack(ctx context.Context, dr *drawer) {
 			return
 		}
 	}
+	body = dr.widgets.bodyInput.Read()
 	requestNum := rate * int(duration/time.Second)
+
 	// To pre-allocate, run redrawChart on a per-attack basis.
 	go dr.redrawChart(ctx, requestNum)
+	go dr.redrawDonut(ctx, requestNum)
 	go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
-		metrics := attacker.Attack(ctx, t, d.chartsCh, attacker.Options{Rate: r, Duration: du, Method: method})
+		metrics := attacker.Attack(ctx, t, d.chartCh, attacker.Options{Rate: r, Duration: du, Method: method, Body: []byte(body)})
 		d.reportCh <- metrics.String()
-		d.chartsCh <- &attacker.Result{End: true}
+		d.chartCh <- &attacker.Result{End: true}
 	}(ctx, dr, target, rate, duration)
 }
 

@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	defaultRate     = 50
-	defaultDuration = 10 * time.Second
-	defaultMethod   = http.MethodGet
+	DefaultRate     = 50
+	DefaultDuration = 10 * time.Second
+	DefaultMethod   = http.MethodGet
 )
 
 type Attacker interface {
@@ -44,13 +44,13 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 		return nil
 	}
 	if opts.Rate == 0 {
-		opts.Rate = defaultRate
+		opts.Rate = DefaultRate
 	}
 	if opts.Duration == 0 {
-		opts.Duration = defaultDuration
+		opts.Duration = DefaultDuration
 	}
 	if opts.Method == "" {
-		opts.Method = defaultMethod
+		opts.Method = DefaultMethod
 	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker()

@@ -14,9 +14,25 @@ Another load testing tool, inspired by [vegeta](https://github.com/tsenart/veget
 
 Executables are available through the [releases page](https://github.com/nakabonne/ali/releases).
 
+## Usage
+
 ## Features
 #### Mouse support
 
+#### Visualizes the attack progress
+
 [gif animations]
 
+## Built with
+- [mum4k/termdash](https://github.com/mum4k/termdash/wiki/Termbox-API)
+  - [nsf/termbox-go](https://github.com/nsf/termbox-go)
+- [vegeta](https://github.com/tsenart/vegeta)
+
+
+## LoadMap
+- Plot Bytes In and Bytes Out (Press `Ctrl-w` to switch between charts)
+- Plot status codes
+- Better UI
+
 ## Alternatives
+
