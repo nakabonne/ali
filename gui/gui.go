@@ -57,15 +57,19 @@ func Run() error {
 		case keyboard.KeyEsc, keyboard.KeyCtrlC:
 			cancel()
 		case keyboard.KeySpace:
+			if d.chartDrawing {
+				return
+			}
 			// TODO: Enalble to poplulate from input
-			rate := 50
+			rate := 10
 			duration, _ := time.ParseDuration("2s")
 			requestNum := rate * int(duration/time.Second)
+			// To pre-allocate, run redrawChart on a per-attack basis.
 			go d.redrawChart(ctx, requestNum)
 			go func(ctx context.Context, d *drawer, r int, du time.Duration) {
 				metrics := attacker.Attack(ctx, "http://34.84.111.163:9898", d.chartsCh, attacker.Options{Rate: r, Duration: du})
-				//close(ch) TODO: Gracefully stop redrawChart goroutine.
 				d.reportCh <- metrics.String()
+				d.chartsCh <- &attacker.Result{End: true}
 			}(ctx, d, rate, duration)
 		}
 	}

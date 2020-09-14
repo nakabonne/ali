@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/k0kubun/pp"
-
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
@@ -34,6 +32,8 @@ type Options struct {
 // Result contains the results of a single HTTP request.
 type Result struct {
 	Latency time.Duration
+	// Indicates if the last result in the entire attack.
+	End bool
 }
 
 // Attack keeps the request running for the specified period of time.
@@ -76,7 +76,6 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 		}
 	}
 	metrics.Close()
-	pp.Println("vegeta metrics", metrics)
 
 	return newMetrics(&metrics)
 }
