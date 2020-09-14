@@ -85,15 +85,15 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
-	raw1 := grid.RowHeightPerc(50,
-		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency"))),
+	raw1 := grid.RowHeightPerc(60,
+		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
-	raw2 := grid.RowHeightPerc(45,
+	raw2 := grid.RowHeightPerc(36,
 		grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
 		grid.ColWidthPerc(49, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
-	raw3 := grid.RowHeightPerc(4,
-		grid.ColWidthPerc(99, grid.Widget(w.navi, container.Border(linestyle.Light))),
+	raw3 := grid.RowHeightFixed(1,
+		grid.ColWidthFixed(100, grid.Widget(w.navi, container.Border(linestyle.Light))),
 	)
 
 	builder := grid.New()

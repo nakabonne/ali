@@ -81,7 +81,7 @@ func newWrapText(s string) (*text.Text, error) {
 func newTextInput() (*textinput.TextInput, error) {
 	input, err := textinput.New(
 		textinput.Label("Target URL: ", cell.FgColor(cell.ColorBlue)),
-		textinput.MaxWidthCells(20),
+		textinput.MaxWidthCells(99),
 		textinput.PlaceHolder("enter target URL"),
 		textinput.OnSubmit(func(text string) error {
 			// TODO: Handle on submit action, for example, using channel.
