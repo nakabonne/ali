@@ -5,6 +5,8 @@ import (
 
 	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash/cell"
+	"github.com/mum4k/termdash/keyboard"
+	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
@@ -16,35 +18,49 @@ const (
 )
 
 type widgets struct {
-	urlInput     *textinput.TextInput
-	latencyChart *linechart.LineChart
-	reportText   *text.Text
-	navi         *text.Text
+	attackButton   *button.Button
+	urlInput       *textinput.TextInput
+	rateLimitInput *textinput.TextInput
+	durationInput  *textinput.TextInput
+	latencyChart   *linechart.LineChart
+	reportText     *text.Text
+	navi           *text.Text
 }
 
 func newWidgets() (*widgets, error) {
-	lc, err := newLineChart()
+	latencyChart, err := newLineChart()
 	if err != nil {
 		return nil, err
 	}
-	rt, err := newRollText("Give the target URL and press Space, then the attack will be launched.")
+	reportText, err := newRollText("Give the target URL and press Space, then the attack will be launched.")
 	if err != nil {
 		return nil, err
 	}
-	wt, err := newRollText("Ctrl-c: quit, Space: attack")
+	navi, err := newRollText("Ctrl-c: quit, Space: attack")
 	if err != nil {
 		return nil, err
 	}
-	ti, err := newTextInput()
+	urlInput, err := newTextInput("Target URL: ", "target URL")
 	if err != nil {
 		return nil, err
 	}
-
+	rateLimitInput, err := newTextInput("Rate limit: ", "number of requests per second (default 50)")
+	if err != nil {
+		return nil, err
+	}
+	attackButton, err := newButton("Attack", func() error {
+		target := urlInput.Read()
+		pp.Println(target)
+		// TODO: Call Attack.
+		return nil
+	})
 	return &widgets{
-		urlInput:     ti,
-		latencyChart: lc,
-		reportText:   rt,
-		navi:         wt,
+		attackButton:   attackButton,
+		urlInput:       urlInput,
+		rateLimitInput: rateLimitInput,
+		latencyChart:   latencyChart,
+		reportText:     reportText,
+		navi:           navi,
 	}, nil
 }
 
@@ -67,30 +83,22 @@ func newRollText(s string) (*text.Text, error) {
 	return t, nil
 }
 
-func newWrapText(s string) (*text.Text, error) {
-	t, err := text.New(text.WrapAtWords())
-	if err != nil {
-		return nil, err
-	}
-	if err := t.Write(s); err != nil {
-		return nil, err
-	}
-	return t, nil
+func newButton(text string, onSubmit func() error) (*button.Button, error) {
+	return button.New(text, onSubmit,
+		button.GlobalKey(keyboard.KeyEnter),
+		button.FillColor(cell.ColorNumber(196)),
+	)
 }
 
-func newTextInput() (*textinput.TextInput, error) {
-	input, err := textinput.New(
-		textinput.Label("Target URL: ", cell.FgColor(cell.ColorBlue)),
+func newTextInput(label, placeHolder string) (*textinput.TextInput, error) {
+	return textinput.New(
+		textinput.Label(label, cell.FgColor(cell.ColorBlue)),
 		textinput.MaxWidthCells(99),
-		textinput.PlaceHolder("enter target URL"),
+		textinput.PlaceHolder(placeHolder),
 		textinput.OnSubmit(func(text string) error {
 			// TODO: Handle on submit action, for example, using channel.
 			pp.Println("input text", text)
 			return nil
 		}),
 	)
-	if err != nil {
-		return nil, err
-	}
-	return input, err
 }
