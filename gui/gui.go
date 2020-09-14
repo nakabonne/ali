@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/mum4k/termdash"
@@ -68,15 +69,31 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*
 				return
 			}
 			var (
-				rate        = 10
-				duration, _ = time.ParseDuration("2s")
-				requestNum  = rate * int(duration/time.Second)
-				target      = dr.widgets.urlInput.Read()
+				target   string
+				rate     int
+				duration time.Duration
+				err      error
 			)
+			target = dr.widgets.urlInput.Read()
 			if _, err := url.ParseRequestURI(target); err != nil {
-				dr.reportCh <- fmt.Sprintf("bad URL: %v", err)
+				dr.reportCh <- fmt.Sprintf("Bad URL: %v", err)
 				return
 			}
+			if s := dr.widgets.rateLimitInput.Read(); s != "" {
+				rate, err = strconv.Atoi(s)
+				if err != nil {
+					dr.reportCh <- fmt.Sprintf("Given rate limit %q isn't integer: %v", s, err)
+					return
+				}
+			}
+			if s := dr.widgets.durationInput.Read(); s != "" {
+				duration, err = time.ParseDuration(s)
+				if err != nil {
+					dr.reportCh <- fmt.Sprintf("Unparseable duration %q: %v", s, err)
+					return
+				}
+			}
+			requestNum := rate * int(duration/time.Second)
 			// To pre-allocate, run redrawChart on a per-attack basis.
 			go dr.redrawChart(ctx, requestNum)
 			go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
@@ -93,7 +110,14 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
 	raw2 := grid.RowHeightPerc(36,
-		grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
+		//grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
+		grid.ColWidthPerc(50,
+			grid.RowHeightPerc(20, grid.Widget(w.urlInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(20,
+				grid.ColWidthPerc(50, grid.Widget(w.rateLimitInput, container.Border(linestyle.None))),
+				grid.ColWidthPerc(49, grid.Widget(w.durationInput, container.Border(linestyle.None))),
+			),
+		),
 		grid.ColWidthPerc(49, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
 	raw3 := grid.RowHeightFixed(1,

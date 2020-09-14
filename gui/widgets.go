@@ -3,7 +3,6 @@ package gui
 import (
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/keyboard"
 	"github.com/mum4k/termdash/widgets/button"
@@ -18,7 +17,6 @@ const (
 )
 
 type widgets struct {
-	attackButton   *button.Button
 	urlInput       *textinput.TextInput
 	rateLimitInput *textinput.TextInput
 	durationInput  *textinput.TextInput
@@ -40,24 +38,28 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlInput, err := newTextInput("Target URL: ", "target URL")
+	urlInput, err := newTextInput("Target URL: ", "", 100)
 	if err != nil {
 		return nil, err
 	}
-	rateLimitInput, err := newTextInput("Rate limit: ", "number of requests per second (default 50)")
+	rateLimitInput, err := newTextInput("Rate limit: ", "50", 50)
 	if err != nil {
 		return nil, err
 	}
-	attackButton, err := newButton("Attack", func() error {
+	durationInput, err := newTextInput("Duration: ", "30s", 50)
+	if err != nil {
+		return nil, err
+	}
+	/*attackButton, err := newButton("Attack", func() error {
 		target := urlInput.Read()
 		pp.Println(target)
 		// TODO: Call Attack.
 		return nil
-	})
+	})*/
 	return &widgets{
-		attackButton:   attackButton,
 		urlInput:       urlInput,
 		rateLimitInput: rateLimitInput,
+		durationInput:  durationInput,
 		latencyChart:   latencyChart,
 		reportText:     reportText,
 		navi:           navi,
@@ -90,10 +92,10 @@ func newButton(text string, onSubmit func() error) (*button.Button, error) {
 	)
 }
 
-func newTextInput(label, placeHolder string) (*textinput.TextInput, error) {
+func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, error) {
 	return textinput.New(
-		textinput.Label(label, cell.FgColor(cell.ColorBlue)),
-		textinput.MaxWidthCells(99),
+		textinput.Label(label, cell.FgColor(cell.ColorWhite)),
+		textinput.MaxWidthCells(cells),
 		textinput.PlaceHolder(placeHolder),
 	)
 }
