@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/mum4k/termdash/cell"
-	"github.com/mum4k/termdash/keyboard"
-	"github.com/mum4k/termdash/widgets/button"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
@@ -20,6 +18,8 @@ type widgets struct {
 	urlInput       *textinput.TextInput
 	rateLimitInput *textinput.TextInput
 	durationInput  *textinput.TextInput
+	methodInput    *textinput.TextInput
+	bodyInput      *textinput.TextInput
 	latencyChart   *linechart.LineChart
 	reportText     *text.Text
 	navi           *text.Text
@@ -38,28 +38,32 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlInput, err := newTextInput("Target URL: ", "", 100)
+	urlInput, err := newTextInput("Target URL: ", "", 60)
 	if err != nil {
 		return nil, err
 	}
-	rateLimitInput, err := newTextInput("Rate limit: ", "50", 50)
+	rateLimitInput, err := newTextInput("Rate limit: ", "50", 30)
 	if err != nil {
 		return nil, err
 	}
-	durationInput, err := newTextInput("Duration: ", "30s", 50)
+	durationInput, err := newTextInput("Duration: ", "10s", 30)
 	if err != nil {
 		return nil, err
 	}
-	/*attackButton, err := newButton("Attack", func() error {
-		target := urlInput.Read()
-		pp.Println(target)
-		// TODO: Call Attack.
-		return nil
-	})*/
+	methodInput, err := newTextInput("Method: ", "GET", 30)
+	if err != nil {
+		return nil, err
+	}
+	bodyInput, err := newTextInput("Body: ", "", 30)
+	if err != nil {
+		return nil, err
+	}
 	return &widgets{
 		urlInput:       urlInput,
 		rateLimitInput: rateLimitInput,
 		durationInput:  durationInput,
+		methodInput:    methodInput,
+		bodyInput:      bodyInput,
 		latencyChart:   latencyChart,
 		reportText:     reportText,
 		navi:           navi,
@@ -83,13 +87,6 @@ func newRollText(s string) (*text.Text, error) {
 		return nil, err
 	}
 	return t, nil
-}
-
-func newButton(text string, onSubmit func() error) (*button.Button, error) {
-	return button.New(text, onSubmit,
-		button.GlobalKey(keyboard.KeyEnter),
-		button.FillColor(cell.ColorNumber(196)),
-	)
 }
 
 func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, error) {

@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -59,66 +60,23 @@ func Run() error {
 	return termdash.Run(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }
 
-func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
-	return func(k *terminalapi.Keyboard) {
-		switch k.Key {
-		case keyboard.KeyCtrlC: // Quit
-			cancel()
-		case keyboard.KeyEnter: // Attack
-			if dr.chartDrawing {
-				return
-			}
-			var (
-				target   string
-				rate     int
-				duration time.Duration
-				err      error
-			)
-			target = dr.widgets.urlInput.Read()
-			if _, err := url.ParseRequestURI(target); err != nil {
-				dr.reportCh <- fmt.Sprintf("Bad URL: %v", err)
-				return
-			}
-			if s := dr.widgets.rateLimitInput.Read(); s != "" {
-				rate, err = strconv.Atoi(s)
-				if err != nil {
-					dr.reportCh <- fmt.Sprintf("Given rate limit %q isn't integer: %v", s, err)
-					return
-				}
-			}
-			if s := dr.widgets.durationInput.Read(); s != "" {
-				duration, err = time.ParseDuration(s)
-				if err != nil {
-					dr.reportCh <- fmt.Sprintf("Unparseable duration %q: %v", s, err)
-					return
-				}
-			}
-			requestNum := rate * int(duration/time.Second)
-			// To pre-allocate, run redrawChart on a per-attack basis.
-			go dr.redrawChart(ctx, requestNum)
-			go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
-				metrics := attacker.Attack(ctx, t, d.chartsCh, attacker.Options{Rate: r, Duration: du})
-				d.reportCh <- metrics.String()
-				d.chartsCh <- &attacker.Result{End: true}
-			}(ctx, dr, target, rate, duration)
-		}
-	}
-}
-
 func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(60,
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
 	raw2 := grid.RowHeightPerc(36,
-		//grid.ColWidthPerc(50, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Input"))),
-		grid.ColWidthPerc(50,
-			grid.RowHeightPerc(20, grid.Widget(w.urlInput, container.Border(linestyle.None))),
-			grid.RowHeightPerc(20,
+		grid.ColWidthPerc(30,
+			grid.RowHeightPerc(33, grid.Widget(w.urlInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(33,
 				grid.ColWidthPerc(50, grid.Widget(w.rateLimitInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(49, grid.Widget(w.durationInput, container.Border(linestyle.None))),
 			),
+			grid.RowHeightPerc(32,
+				grid.ColWidthPerc(50, grid.Widget(w.methodInput, container.Border(linestyle.None))),
+				grid.ColWidthPerc(49, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
+			),
 		),
-		grid.ColWidthPerc(49, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
+		grid.ColWidthPerc(69, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
 	raw3 := grid.RowHeightFixed(1,
 		grid.ColWidthFixed(100, grid.Widget(w.navi, container.Border(linestyle.Light))),
@@ -132,4 +90,69 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 	)
 
 	return builder.Build()
+}
+
+func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
+	return func(k *terminalapi.Keyboard) {
+		switch k.Key {
+		case keyboard.KeyCtrlC: // Quit
+			cancel()
+		case keyboard.KeyEnter: // Attack
+			attack(ctx, dr)
+		}
+	}
+}
+
+func attack(ctx context.Context, dr *drawer) {
+	if dr.chartDrawing {
+		return
+	}
+	var (
+		target   string
+		rate     int
+		duration time.Duration
+		method   string
+		err      error
+	)
+	target = dr.widgets.urlInput.Read()
+	if _, err := url.ParseRequestURI(target); err != nil {
+		dr.reportCh <- fmt.Sprintf("Bad URL: %v", err)
+		return
+	}
+	if s := dr.widgets.rateLimitInput.Read(); s != "" {
+		rate, err = strconv.Atoi(s)
+		if err != nil {
+			dr.reportCh <- fmt.Sprintf("Given rate limit %q isn't integer: %v", s, err)
+			return
+		}
+	}
+	if s := dr.widgets.durationInput.Read(); s != "" {
+		duration, err = time.ParseDuration(s)
+		if err != nil {
+			dr.reportCh <- fmt.Sprintf("Unparseable duration %q: %v", s, err)
+			return
+		}
+	}
+	if method = dr.widgets.methodInput.Read(); method != "" {
+		if !validateMethod(method) {
+			dr.reportCh <- fmt.Sprintf("Given method %q isn't an HTTP request method", method)
+			return
+		}
+	}
+	requestNum := rate * int(duration/time.Second)
+	// To pre-allocate, run redrawChart on a per-attack basis.
+	go dr.redrawChart(ctx, requestNum)
+	go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
+		metrics := attacker.Attack(ctx, t, d.chartsCh, attacker.Options{Rate: r, Duration: du, Method: method})
+		d.reportCh <- metrics.String()
+		d.chartsCh <- &attacker.Result{End: true}
+	}(ctx, dr, target, rate, duration)
+}
+
+func validateMethod(method string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodConnect, http.MethodOptions, http.MethodTrace:
+		return true
+	}
+	return false
 }

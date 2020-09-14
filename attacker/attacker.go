@@ -10,7 +10,7 @@ import (
 
 const (
 	defaultRate     = 50
-	defaultDuration = 30 * time.Second
+	defaultDuration = 10 * time.Second
 	defaultMethod   = http.MethodGet
 )
 
