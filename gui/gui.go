@@ -63,25 +63,25 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(60,
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
-	raw2 := grid.RowHeightPerc(34,
+	raw2 := grid.RowHeightPerc(35,
 		grid.ColWidthPerc(64,
-			grid.RowHeightPerc(29, grid.Widget(w.urlInput, container.Border(linestyle.None))),
-			grid.RowHeightPerc(29,
+			grid.RowHeightPerc(33, grid.Widget(w.urlInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(33,
 				grid.ColWidthPerc(33, grid.Widget(w.rateLimitInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(33, grid.Widget(w.durationInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(33, grid.Widget(w.timeoutInput, container.Border(linestyle.None))),
 			),
-			grid.RowHeightPerc(29,
+			grid.RowHeightPerc(33,
 				grid.ColWidthPerc(33, grid.Widget(w.methodInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(33, grid.Widget(w.headerInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
 			),
-			grid.RowHeightPerc(12, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
 		),
 		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
-	raw3 := grid.RowHeightFixed(1,
-		grid.ColWidthFixed(100, grid.Widget(w.navi, container.Border(linestyle.Light))),
+	raw3 := grid.RowHeightPerc(4,
+		grid.ColWidthPerc(64, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
+		grid.ColWidthPerc(33, grid.Widget(w.navi, container.Border(linestyle.Light))),
 	)
 
 	builder := grid.New()

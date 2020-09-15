@@ -71,7 +71,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	progressDonut, err := newGauge()
+	progressGauge, err := newGauge()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func newWidgets() (*widgets, error) {
 		timeoutInput:   timeoutInput,
 		latencyChart:   latencyChart,
 		reportText:     reportText,
-		progressGauge:  progressDonut,
+		progressGauge:  progressGauge,
 		navi:           navi,
 	}, nil
 }
