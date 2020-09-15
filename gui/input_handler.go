@@ -15,6 +15,7 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 	var (
 		rate     int
 		duration time.Duration
+		timeout  time.Duration
 		method   string
 		body     string
 		header   = make(http.Header)
@@ -36,6 +37,15 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		duration, err = time.ParseDuration(s)
 		if err != nil {
 			return attacker.Options{}, fmt.Errorf("Unparseable duration %q: %w", s, err)
+		}
+	}
+
+	if s := w.timeoutInput.Read(); s == "" {
+		timeout = attacker.DefaultTimeout
+	} else {
+		timeout, err = time.ParseDuration(s)
+		if err != nil {
+			return attacker.Options{}, fmt.Errorf("Unparseable timeout %q: %w", s, err)
 		}
 	}
 
@@ -65,6 +75,7 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 	return attacker.Options{
 		Rate:     rate,
 		Duration: duration,
+		Timeout:  timeout,
 		Method:   method,
 		Body:     []byte(body),
 		Header:   header,

@@ -11,6 +11,7 @@ import (
 const (
 	DefaultRate     = 50
 	DefaultDuration = 10 * time.Second
+	DefaultTimeout  = 30 * time.Second
 	DefaultMethod   = http.MethodGet
 )
 
@@ -23,6 +24,7 @@ type Attacker interface {
 type Options struct {
 	Rate     int
 	Duration time.Duration
+	Timeout  time.Duration
 	Method   string
 	Body     []byte
 	Header   http.Header
@@ -50,11 +52,14 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if opts.Duration == 0 {
 		opts.Duration = DefaultDuration
 	}
+	if opts.Timeout == 0 {
+		opts.Timeout = DefaultTimeout
+	}
 	if opts.Method == "" {
 		opts.Method = DefaultMethod
 	}
 	if opts.Attacker == nil {
-		opts.Attacker = vegeta.NewAttacker()
+		opts.Attacker = vegeta.NewAttacker(vegeta.Timeout(opts.Timeout))
 	}
 
 	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
