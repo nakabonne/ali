@@ -3,9 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/mum4k/termdash"
@@ -65,18 +63,19 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(60,
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
-	raw2 := grid.RowHeightPerc(36,
+	raw2 := grid.RowHeightPerc(34,
 		grid.ColWidthPerc(64,
-			grid.RowHeightPerc(31, grid.Widget(w.urlInput, container.Border(linestyle.None))),
-			grid.RowHeightPerc(31,
+			grid.RowHeightPerc(29, grid.Widget(w.urlInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(29,
 				grid.ColWidthPerc(50, grid.Widget(w.rateLimitInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(49, grid.Widget(w.durationInput, container.Border(linestyle.None))),
 			),
-			grid.RowHeightPerc(31,
-				grid.ColWidthPerc(50, grid.Widget(w.methodInput, container.Border(linestyle.None))),
-				grid.ColWidthPerc(49, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(29,
+				grid.ColWidthPerc(33, grid.Widget(w.methodInput, container.Border(linestyle.None))),
+				grid.ColWidthPerc(33, grid.Widget(w.headerInput, container.Border(linestyle.None))),
+				grid.ColWidthPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
 			),
-			grid.RowHeightPerc(6, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
+			grid.RowHeightPerc(12, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
 		),
 		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
@@ -105,64 +104,28 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*
 	}
 }
 
-func attack(ctx context.Context, dr *drawer) {
-	if dr.chartDrawing {
+func attack(ctx context.Context, d *drawer) {
+	if d.chartDrawing {
 		return
 	}
-	var (
-		target   string
-		rate     int
-		duration time.Duration
-		method   string
-		body     string
-		err      error
-	)
-	target = dr.widgets.urlInput.Read()
+	target := d.widgets.urlInput.Read()
 	if _, err := url.ParseRequestURI(target); err != nil {
-		dr.reportCh <- fmt.Sprintf("Bad URL: %v", err)
+		d.reportCh <- fmt.Sprintf("Bad URL: %v", err)
 		return
 	}
-	if s := dr.widgets.rateLimitInput.Read(); s == "" {
-		rate = attacker.DefaultRate
-	} else {
-		rate, err = strconv.Atoi(s)
-		if err != nil {
-			dr.reportCh <- fmt.Sprintf("Given rate limit %q isn't integer: %v", s, err)
-			return
-		}
+	opts, err := makeOptions(d)
+	if err != nil {
+		d.reportCh <- err.Error()
+		return
 	}
-	if s := dr.widgets.durationInput.Read(); s == "" {
-		duration = attacker.DefaultDuration
-	} else {
-		duration, err = time.ParseDuration(s)
-		if err != nil {
-			dr.reportCh <- fmt.Sprintf("Unparseable duration %q: %v", s, err)
-			return
-		}
-	}
-	if method = dr.widgets.methodInput.Read(); method != "" {
-		if !validateMethod(method) {
-			dr.reportCh <- fmt.Sprintf("Given method %q isn't an HTTP request method", method)
-			return
-		}
-	}
-	body = dr.widgets.bodyInput.Read()
-	requestNum := rate * int(duration/time.Second)
+	requestNum := opts.Rate * int(opts.Duration/time.Second)
 
 	// To pre-allocate, run redrawChart on a per-attack basis.
-	go dr.redrawChart(ctx, requestNum)
-	go dr.redrawGauge(ctx, requestNum)
-	go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
-		metrics := attacker.Attack(ctx, t, d.chartCh, attacker.Options{Rate: r, Duration: du, Method: method, Body: []byte(body)})
+	go d.redrawChart(ctx, requestNum)
+	go d.redrawGauge(ctx, requestNum)
+	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
+		metrics := attacker.Attack(ctx, t, d.chartCh, o)
 		d.reportCh <- metrics.String()
 		d.chartCh <- &attacker.Result{End: true}
-	}(ctx, dr, target, rate, duration)
-}
-
-func validateMethod(method string) bool {
-	switch method {
-	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodConnect, http.MethodOptions, http.MethodTrace:
-		return true
-	}
-	return false
+	}(ctx, d, target, opts)
 }

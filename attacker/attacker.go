@@ -26,6 +26,7 @@ type Options struct {
 	Method   string
 	Body     []byte
 	Header   http.Header
+
 	Attacker Attacker
 }
 

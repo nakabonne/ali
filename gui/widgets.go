@@ -22,6 +22,8 @@ type widgets struct {
 	durationInput  *textinput.TextInput
 	methodInput    *textinput.TextInput
 	bodyInput      *textinput.TextInput
+	headerInput    *textinput.TextInput
+	timeoutInput   *textinput.TextInput
 	latencyChart   *linechart.LineChart
 	reportText     *text.Text
 	progressGauge  *gauge.Gauge
@@ -61,6 +63,14 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
+	headerInput, err := newTextInput("Header: ", "", 30)
+	if err != nil {
+		return nil, err
+	}
+	timeoutInput, err := newTextInput("Timeout: ", "30s", 30)
+	if err != nil {
+		return nil, err
+	}
 	progressDonut, err := newGauge()
 	if err != nil {
 		return nil, err
@@ -71,6 +81,8 @@ func newWidgets() (*widgets, error) {
 		durationInput:  durationInput,
 		methodInput:    methodInput,
 		bodyInput:      bodyInput,
+		headerInput:    headerInput,
+		timeoutInput:   timeoutInput,
 		latencyChart:   latencyChart,
 		reportText:     reportText,
 		progressGauge:  progressDonut,
