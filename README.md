@@ -30,6 +30,7 @@ Executables are available through the [releases page](https://github.com/nakabon
 
 
 ## LoadMap
+- Support more options for HTTP requests
 - Plot Bytes In and Bytes Out (Press `Ctrl-w` to switch between charts)
 - Plot status codes
 - Better UI

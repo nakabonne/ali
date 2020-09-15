@@ -11,7 +11,7 @@ import (
 )
 
 // makeOptions gives back an options for attacker, with the input from UI.
-func makeOptions(d *drawer) (attacker.Options, error) {
+func makeOptions(w *widgets) (attacker.Options, error) {
 	var (
 		rate     int
 		duration time.Duration
@@ -21,7 +21,7 @@ func makeOptions(d *drawer) (attacker.Options, error) {
 		err      error
 	)
 
-	if s := d.widgets.rateLimitInput.Read(); s == "" {
+	if s := w.rateLimitInput.Read(); s == "" {
 		rate = attacker.DefaultRate
 	} else {
 		rate, err = strconv.Atoi(s)
@@ -30,7 +30,7 @@ func makeOptions(d *drawer) (attacker.Options, error) {
 		}
 	}
 
-	if s := d.widgets.durationInput.Read(); s == "" {
+	if s := w.durationInput.Read(); s == "" {
 		duration = attacker.DefaultDuration
 	} else {
 		duration, err = time.ParseDuration(s)
@@ -39,15 +39,15 @@ func makeOptions(d *drawer) (attacker.Options, error) {
 		}
 	}
 
-	if method = d.widgets.methodInput.Read(); method != "" {
+	if method = w.methodInput.Read(); method != "" {
 		if !validateMethod(method) {
 			return attacker.Options{}, fmt.Errorf("Given method %q isn't an HTTP request method", method)
 		}
 	}
 
-	body = d.widgets.bodyInput.Read()
+	body = w.bodyInput.Read()
 
-	if s := d.widgets.headerInput.Read(); s != "" {
+	if s := w.headerInput.Read(); s != "" {
 		parts := strings.SplitN(s, ":", 2)
 		if len(parts) != 2 {
 			return attacker.Options{}, fmt.Errorf("Given header %q has a wrong format", s)

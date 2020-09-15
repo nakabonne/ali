@@ -113,7 +113,7 @@ func attack(ctx context.Context, d *drawer) {
 		d.reportCh <- fmt.Sprintf("Bad URL: %v", err)
 		return
 	}
-	opts, err := makeOptions(d)
+	opts, err := makeOptions(d.widgets)
 	if err != nil {
 		d.reportCh <- err.Error()
 		return
