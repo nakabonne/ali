@@ -51,7 +51,7 @@ func Run() error {
 	d := &drawer{
 		widgets:  w,
 		chartCh:  make(chan *attacker.Result),
-		donutCh:  make(chan bool),
+		gaugeCh:  make(chan bool),
 		reportCh: make(chan string),
 	}
 	go d.redrawReport(ctx)
@@ -66,18 +66,18 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
 	)
 	raw2 := grid.RowHeightPerc(36,
-		grid.ColWidthPerc(30,
-			grid.RowHeightPerc(33, grid.Widget(w.urlInput, container.Border(linestyle.None))),
-			grid.RowHeightPerc(33,
+		grid.ColWidthPerc(64,
+			grid.RowHeightPerc(31, grid.Widget(w.urlInput, container.Border(linestyle.None))),
+			grid.RowHeightPerc(31,
 				grid.ColWidthPerc(50, grid.Widget(w.rateLimitInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(49, grid.Widget(w.durationInput, container.Border(linestyle.None))),
 			),
-			grid.RowHeightPerc(32,
+			grid.RowHeightPerc(31,
 				grid.ColWidthPerc(50, grid.Widget(w.methodInput, container.Border(linestyle.None))),
 				grid.ColWidthPerc(49, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
 			),
+			grid.RowHeightPerc(6, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
 		),
-		grid.ColWidthPerc(34, grid.Widget(w.progressDonut, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
 		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
 	raw3 := grid.RowHeightFixed(1,
@@ -151,7 +151,7 @@ func attack(ctx context.Context, dr *drawer) {
 
 	// To pre-allocate, run redrawChart on a per-attack basis.
 	go dr.redrawChart(ctx, requestNum)
-	go dr.redrawDonut(ctx, requestNum)
+	go dr.redrawGauge(ctx, requestNum)
 	go func(ctx context.Context, d *drawer, t string, r int, du time.Duration) {
 		metrics := attacker.Attack(ctx, t, d.chartCh, attacker.Options{Rate: r, Duration: du, Method: method, Body: []byte(body)})
 		d.reportCh <- metrics.String()
