@@ -7,10 +7,15 @@ import (
 )
 
 type fakeAttacker struct {
+	results []*vegeta.Result
 }
 
 func (f *fakeAttacker) Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result {
-	return nil
+	resultCh := make(chan *vegeta.Result)
+	for _, r := range f.results {
+		resultCh <- r
+	}
+	return resultCh
 }
 
 func (f *fakeAttacker) Stop() {

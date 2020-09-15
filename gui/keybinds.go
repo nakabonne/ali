@@ -1,14 +1,56 @@
 package gui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mum4k/termdash/keyboard"
+	"github.com/mum4k/termdash/terminal/terminalapi"
+
 	"github.com/nakabonne/ali/attacker"
 )
+
+func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
+	return func(k *terminalapi.Keyboard) {
+		switch k.Key {
+		case keyboard.KeyCtrlC: // Quit
+			cancel()
+		case keyboard.KeyEnter: // Attack
+			attack(ctx, dr)
+		}
+	}
+}
+
+func attack(ctx context.Context, d *drawer) {
+	if d.chartDrawing {
+		return
+	}
+	target := d.widgets.urlInput.Read()
+	if _, err := url.ParseRequestURI(target); err != nil {
+		d.reportCh <- fmt.Sprintf("Bad URL: %v", err)
+		return
+	}
+	opts, err := makeOptions(d.widgets)
+	if err != nil {
+		d.reportCh <- err.Error()
+		return
+	}
+	requestNum := opts.Rate * int(opts.Duration/time.Second)
+
+	// To pre-allocate, run redrawChart on a per-attack basis.
+	go d.redrawChart(ctx, requestNum)
+	go d.redrawGauge(ctx, requestNum)
+	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
+		metrics := attacker.Attack(ctx, t, d.chartCh, o)
+		d.reportCh <- metrics.String()
+		d.chartCh <- &attacker.Result{End: true}
+	}(ctx, d, target, opts)
+}
 
 // makeOptions gives back an options for attacker, with the input from UI.
 func makeOptions(w *widgets) (attacker.Options, error) {

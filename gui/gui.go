@@ -3,13 +3,10 @@ package gui
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"time"
 
 	"github.com/mum4k/termdash"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
-	"github.com/mum4k/termdash/keyboard"
 	"github.com/mum4k/termdash/linestyle"
 	"github.com/mum4k/termdash/terminal/termbox"
 	"github.com/mum4k/termdash/terminal/terminalapi"
@@ -88,41 +85,4 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 	)
 
 	return builder.Build()
-}
-
-func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*terminalapi.Keyboard) {
-	return func(k *terminalapi.Keyboard) {
-		switch k.Key {
-		case keyboard.KeyCtrlC: // Quit
-			cancel()
-		case keyboard.KeyEnter: // Attack
-			attack(ctx, dr)
-		}
-	}
-}
-
-func attack(ctx context.Context, d *drawer) {
-	if d.chartDrawing {
-		return
-	}
-	target := d.widgets.urlInput.Read()
-	if _, err := url.ParseRequestURI(target); err != nil {
-		d.reportCh <- fmt.Sprintf("Bad URL: %v", err)
-		return
-	}
-	opts, err := makeOptions(d.widgets)
-	if err != nil {
-		d.reportCh <- err.Error()
-		return
-	}
-	requestNum := opts.Rate * int(opts.Duration/time.Second)
-
-	// To pre-allocate, run redrawChart on a per-attack basis.
-	go d.redrawChart(ctx, requestNum)
-	go d.redrawGauge(ctx, requestNum)
-	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
-		metrics := attacker.Attack(ctx, t, d.chartCh, o)
-		d.reportCh <- metrics.String()
-		d.chartCh <- &attacker.Result{End: true}
-	}(ctx, d, target, opts)
 }
