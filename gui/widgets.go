@@ -35,11 +35,11 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	reportText, err := newRollText("Give the target URL and press Enter, then the attack will be launched.")
+	reportText, err := newText("Give the target URL and press Enter, then the attack will be launched.")
 	if err != nil {
 		return nil, err
 	}
-	navi, err := newRollText("Ctrl-c: quit, Enter: attack")
+	navi, err := newText("Ctrl-c: quit, Enter: attack")
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +98,8 @@ func newLineChart() (*linechart.LineChart, error) {
 	)
 }
 
-func newRollText(s string) (*text.Text, error) {
-	t, err := text.New(text.RollContent())
+func newText(s string) (*text.Text, error) {
+	t, err := text.New(text.RollContent(), text.WrapAtWords())
 	if err != nil {
 		return nil, err
 	}
