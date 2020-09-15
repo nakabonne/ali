@@ -60,22 +60,18 @@ func Run() error {
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
-	raw1 := grid.RowHeightPerc(60,
-		grid.ColWidthPerc(99, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)"))),
-	)
-	raw2 := grid.RowHeightPerc(35,
+	raw1 := grid.RowHeightPerc(65, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
+	raw2 := grid.RowHeightPerc(30,
 		grid.ColWidthPerc(64,
-			grid.RowHeightPerc(33, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Target URL"))),
+			grid.RowHeightPerc(34, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Target URL"))),
 			grid.RowHeightPerc(33,
-				grid.ColWidthPerc(33, grid.Widget(w.rateLimitInput, container.Border(linestyle.Light), container.BorderTitle("Rate Limit"))),
-				grid.ColWidthPerc(33, grid.Widget(w.durationInput, container.Border(linestyle.Light), container.BorderTitle("Duration"))),
-				grid.ColWidthPerc(33, grid.Widget(w.timeoutInput, container.Border(linestyle.Light), container.BorderTitle("Timeout"))),
+				grid.ColWidthPerc(20, grid.Widget(w.rateLimitInput, container.Border(linestyle.Light), container.BorderTitle("Rate Limit"))),
+				grid.ColWidthPerc(20, grid.Widget(w.durationInput, container.Border(linestyle.Light), container.BorderTitle("Duration"))),
+				grid.ColWidthPerc(20, grid.Widget(w.timeoutInput, container.Border(linestyle.Light), container.BorderTitle("Timeout"))),
+				grid.ColWidthPerc(20, grid.Widget(w.methodInput, container.Border(linestyle.Light), container.BorderTitle("Method"))),
+				grid.ColWidthPerc(19, grid.Widget(w.headerInput, container.Border(linestyle.Light), container.BorderTitle("Header"))),
 			),
-			grid.RowHeightPerc(33,
-				grid.ColWidthPerc(33, grid.Widget(w.methodInput, container.Border(linestyle.Light), container.BorderTitle("Method"))),
-				grid.ColWidthPerc(33, grid.Widget(w.headerInput, container.Border(linestyle.Light), container.BorderTitle("Header"))),
-				grid.ColWidthPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.Light), container.BorderTitle("Body"))),
-			),
+			grid.RowHeightPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.Light), container.BorderTitle("Body"))),
 		),
 		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)

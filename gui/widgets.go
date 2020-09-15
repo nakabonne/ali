@@ -43,23 +43,23 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlInput, err := newTextInput("Target URL: ", "http://", 80)
+	urlInput, err := newTextInput("Target URL: ", "http://", 200)
 	if err != nil {
 		return nil, err
 	}
-	rateLimitInput, err := newTextInput("Rate limit: ", "50", 30)
+	rateLimitInput, err := newTextInput("Rate limit: ", "50", 50)
 	if err != nil {
 		return nil, err
 	}
-	durationInput, err := newTextInput("Duration: ", "10s", 30)
+	durationInput, err := newTextInput("Duration: ", "10s", 50)
 	if err != nil {
 		return nil, err
 	}
-	methodInput, err := newTextInput("Method: ", "GET", 30)
+	methodInput, err := newTextInput("Method: ", "GET", 50)
 	if err != nil {
 		return nil, err
 	}
-	bodyInput, err := newTextInput("Body: ", "", 30)
+	bodyInput, err := newTextInput("Body: ", "", 200)
 	if err != nil {
 		return nil, err
 	}
