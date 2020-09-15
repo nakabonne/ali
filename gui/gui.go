@@ -77,8 +77,8 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 				grid.ColWidthPerc(49, grid.Widget(w.bodyInput, container.Border(linestyle.None))),
 			),
 		),
-		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 		grid.ColWidthPerc(34, grid.Widget(w.progressDonut, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
+		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
 	)
 	raw3 := grid.RowHeightFixed(1,
 		grid.ColWidthFixed(100, grid.Widget(w.navi, container.Border(linestyle.Light))),
