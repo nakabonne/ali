@@ -43,7 +43,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlInput, err := newTextInput("Target URL: ", "", 60)
+	urlInput, err := newTextInput("Target URL: ", "http://", 80)
 	if err != nil {
 		return nil, err
 	}
@@ -111,9 +111,13 @@ func newText(s string) (*text.Text, error) {
 
 func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, error) {
 	return textinput.New(
-		textinput.Label(label, cell.FgColor(cell.ColorWhite)),
+		//textinput.Label(label, cell.FgColor(cell.ColorWhite)),
+		textinput.Border(linestyle.Double),
+		textinput.BorderColor(cell.ColorGreen),
+		textinput.FillColor(cell.ColorDefault),
 		textinput.MaxWidthCells(cells),
 		textinput.PlaceHolder(placeHolder),
+		textinput.PlaceHolderColor(cell.ColorDefault),
 	)
 }
 
