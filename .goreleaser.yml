@@ -47,6 +47,15 @@ brews:
     homepage: 'https://github.com/nakabonne/ali'
     description: 'Generate HTTP load and plot the results in real-time'
 
+nfpms:
+  - license: MIT
+    maintainer: Ryo Nakao <ryo@nakao.dev>
+    homepage: https://github.com/nakabonne/ali
+    description: "Generate HTTP load and plot the results in real-time"
+    formats:
+      - rpm
+      - deb
+
 dockers:
   - dockerfile: Dockerfile
     binaries:
