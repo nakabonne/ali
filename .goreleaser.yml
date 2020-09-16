@@ -1,0 +1,48 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+- main: .
+  binary: ali
+  goos:
+    - freebsd
+    - darwin
+    - linux
+    - windows
+  goarch:
+    - amd64
+    - arm
+    - arm64
+    - 386
+    - ppc64le
+    - s390x
+    - mips64
+    - mips64le
+  goarm:
+    - 6
+    - 7
+  env:
+    - CGO_ENABLED=0
+  ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+
+archives:
+- replacements:
+    386: 32-bit
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  filters:
+    exclude:
+    - '^test:'
+
+brews:
+  - github:
+      owner: nakabonne
+      name: homebrew-ali
+    homepage: 'https://github.com/nakabonne/ali'
+    description: 'Generate HTTP load and plot the results in real-time'
