@@ -22,22 +22,28 @@ Give the target URL and press Enter, then the attack will be launched with defau
 ### Options
 
 #### Rate Limit
-
 The request rate per time unit to issue against the targets.
 Give 0 then it will send requests as fast as possible.
+Default is `50`.
 
 #### Duration
 The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop.
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". Default is `10s`.
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+Default is `10s`.
 
 #### Timeout
 The timeout for each request. `0s` means to disable timeouts.
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+Default is `30s`
 
-**Method**
+#### Method
+An HTTP request method for each request.
 
-**Header**
+#### Header
+A request header to be sent.
 
-**Body**
+#### Body
+The file whose content will be set as the http request body.
 
 ## Features
 

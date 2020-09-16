@@ -2,6 +2,7 @@ package attacker
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -26,7 +27,7 @@ type Options struct {
 	Duration time.Duration
 	Timeout  time.Duration
 	Method   string
-	Body     []byte
+	BodyFile string
 	Header   http.Header
 
 	Attacker Attacker
@@ -52,12 +53,21 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(vegeta.Timeout(opts.Timeout))
 	}
+	var body []byte
+	if opts.BodyFile != "" {
+		if b, err := ioutil.ReadFile(opts.BodyFile); err != nil {
+			// TODO: Report to report widget
+			return nil
+		} else {
+			body = b
+		}
+	}
 
 	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: opts.Method,
 		URL:    target,
-		Body:   opts.Body,
+		Body:   body,
 		Header: opts.Header,
 	})
 

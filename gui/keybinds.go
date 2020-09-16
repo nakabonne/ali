@@ -59,7 +59,6 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		duration time.Duration
 		timeout  time.Duration
 		method   string
-		body     string
 		header   = make(http.Header)
 		err      error
 	)
@@ -97,8 +96,6 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		}
 	}
 
-	body = w.bodyInput.Read()
-
 	if s := w.headerInput.Read(); s != "" {
 		parts := strings.SplitN(s, ":", 2)
 		if len(parts) != 2 {
@@ -119,7 +116,7 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		Duration: duration,
 		Timeout:  timeout,
 		Method:   method,
-		Body:     []byte(body),
+		BodyFile: w.bodyInput.Read(),
 		Header:   header,
 	}, nil
 }
