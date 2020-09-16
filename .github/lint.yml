@@ -1,0 +1,23 @@
+name: lint
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'README.md'
+      - '.github/'
+      - 'images/'
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.30.0
+
+          # Optional: golangci-lint command line arguments.
+          # args: ./the-only-dir-to-analyze/...
