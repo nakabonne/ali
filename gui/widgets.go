@@ -42,7 +42,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	navi, err := newText("Ctrl-c: quit, Enter: attack")
+	navi, err := newText("Ctrl-C: quit, Enter: attack")
 	if err != nil {
 		return nil, err
 	}

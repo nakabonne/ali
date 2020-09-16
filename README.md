@@ -21,11 +21,17 @@ Give the target URL and press Enter, then the attack will be launched with defau
 
 ### Options
 
-**Rate Limit**
+#### Rate Limit
 
-**Duration**
+The request rate per time unit to issue against the targets.
+Give 0 then it will send requests as fast as possible.
 
-**Timeout**
+#### Duration
+The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop.
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". Default is `10s`.
+
+#### Timeout
+The timeout for each request. `0s` means to disable timeouts.
 
 **Method**
 
@@ -35,17 +41,17 @@ Give the target URL and press Enter, then the attack will be launched with defau
 
 ## Features
 
-#### Plot in real-time
+### Plot in real-time
 Currently it only plots latencies, but in the near future more metrics will be drawn as well.
 
 ![Screenshot](images/real-time.gif)
 
-#### Visualize the attack progress
+### Visualize the attack progress
 This will help you during long tests.
 
 ![Screenshot](images/progress.gif)
 
-#### Mouse support
+### Mouse support
 With the help of [mum4k/termdash](https://github.com/mum4k/termdash), intuitive operation is supported.
 
 ![Screenshot](images/mouse-support.gif)

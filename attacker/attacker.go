@@ -46,15 +46,6 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if target == "" {
 		return nil
 	}
-	if opts.Rate == 0 {
-		opts.Rate = DefaultRate
-	}
-	if opts.Duration == 0 {
-		opts.Duration = DefaultDuration
-	}
-	if opts.Timeout == 0 {
-		opts.Timeout = DefaultTimeout
-	}
 	if opts.Method == "" {
 		opts.Method = DefaultMethod
 	}
