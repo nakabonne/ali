@@ -17,11 +17,18 @@ Executables are available through the [releases page](https://github.com/nakabon
 ## Usage
 
 ## Features
+
+#### Plot in real-time
+Currently it only plots Latencies, but in the near future more metrics will be drawn do A as well.
+![Screenshot](images/real-time.gif)
+
+#### Visualize the attack progress
+This will help you during long tests.
+![Screenshot](images/progress.gif)
+
 #### Mouse support
+![Screenshot](images/mouse-support.gif)
 
-#### Visualizes the attack progress
-
-[gif animations]
 
 ## Built with
 - [mum4k/termdash](https://github.com/mum4k/termdash/wiki/Termbox-API)
@@ -30,9 +37,8 @@ Executables are available through the [releases page](https://github.com/nakabon
 
 
 ## LoadMap
-- Support more options for HTTP requests
-- Plot Bytes In and Bytes Out (Press `Ctrl-w` to switch between charts)
-- Plot status codes
+- Plot Bytes In and Bytes Out ([#2](https://github.com/nakabonne/ali/issues/2))
+- Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
 - Better UI
 
 ## Alternatives
