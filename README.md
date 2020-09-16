@@ -1,33 +1,45 @@
 # ali
-
-<div align="center">
+[![Release](https://img.shields.io/github/release/nakabonne/ali.svg?style=flat-square)](https://github.com/nakabonne/ali/releases/latest)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/nakabonne/ali)
 
 Another load testing tool, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
 
 ![Screenshot](images/demo.gif)
-
-</div>
 
 `ali` comes with a simple terminal based UI, lets you generate HTTP requests and plot the results in real-time.
 With it, real-time analysis can be performed on the terminal.
 
 ## Installation
 
-Executables are available through the [releases page](https://github.com/nakabonne/ali/releases).
+Binaries are available through the [releases page](https://github.com/nakabonne/ali/releases).
 
-**With Homebrew**
+**Via Homebrew**
 
 ```bash
 brew install nakabonne/ali/ali
 ```
 
-**With Go**
+**Via APT**
+
+```bash
+wget https://github.com/nakabonne/ali/releases/download/v0.1.2/ali_0.1.2_linux_amd64.deb
+apt install ./ali_0.1.2_linux_amd64.deb
+```
+
+**Via RPM**
+
+```bash
+curl -OL https://github.com/nakabonne/ali/releases/download/v0.1.2/ali_0.1.2_linux_amd64.rpm
+rpm -i ./ali_0.1.2_linux_amd64.rpm
+```
+
+**Via Go**
 
 ```bash
 go get github.com/nakabonne/ali
 ```
 
-**With Docker**
+**Via Docker**
 
 ```bash
 docker run --rm -it nakabonne/ali ali
@@ -39,29 +51,14 @@ Give the target URL and press Enter, then the attack will be launched with defau
 
 ### Options
 
-#### Rate Limit
-The request rate per time unit to issue against the targets.
-Give 0 then it will send requests as fast as possible.
-Default is `50`.
-
-#### Duration
-The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop.
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-Default is `10s`.
-
-#### Timeout
-The timeout for each request. `0s` means to disable timeouts.
-Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-Default is `30s`
-
-#### Method
-An HTTP request method for each request.
-
-#### Header
-A request header to be sent.
-
-#### Body
-The file whose content will be set as the http request body.
+| Name | Description | Default |
+|------|-------------|---------|
+| Rate Limit | The request rate per time unit to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
+| Duration | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
+| Timeout | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
+| Method | An HTTP request method for each request. | GET |
+| Header | A request header to be sent. | empty |
+| Body | The file whose content will be set as the http request body. | empty |
 
 ## Features
 
