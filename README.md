@@ -1,7 +1,5 @@
 # ali
 
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/nakabonne/ali)
-
 <div align="center">
 
 Another load testing tool, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
