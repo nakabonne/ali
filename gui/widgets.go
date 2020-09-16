@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/mum4k/termdash/cell"
@@ -9,6 +10,8 @@ import (
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
 	"github.com/mum4k/termdash/widgets/textinput"
+
+	"github.com/nakabonne/ali/attacker"
 )
 
 // redrawInterval is how often termdash redraws the screen.
@@ -47,15 +50,15 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	rateLimitInput, err := newTextInput("Rate limit: ", "50", 50)
+	rateLimitInput, err := newTextInput("Rate limit: ", strconv.Itoa(attacker.DefaultRate), 50)
 	if err != nil {
 		return nil, err
 	}
-	durationInput, err := newTextInput("Duration: ", "10s", 50)
+	durationInput, err := newTextInput("Duration: ", attacker.DefaultDuration.String(), 50)
 	if err != nil {
 		return nil, err
 	}
-	methodInput, err := newTextInput("Method: ", "GET", 50)
+	methodInput, err := newTextInput("Method: ", attacker.DefaultMethod, 50)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +70,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	timeoutInput, err := newTextInput("Timeout: ", "30s", 30)
+	timeoutInput, err := newTextInput("Timeout: ", attacker.DefaultTimeout.String(), 30)
 	if err != nil {
 		return nil, err
 	}
