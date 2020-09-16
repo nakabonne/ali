@@ -4,7 +4,7 @@
 
 Another load testing tool, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
 
-[gif animations]
+![Screenshot](images/demo.gif)
 
 </div>
 
@@ -40,6 +40,3 @@ This will help you during long tests.
 - Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
 - Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
 - Better UI
-
-## Alternatives
-
