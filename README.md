@@ -1,5 +1,7 @@
 # ali
 
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/nakabonne/ali)
+
 <div align="center">
 
 Another load testing tool, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
@@ -14,6 +16,24 @@ With it, real-time analysis can be performed on the terminal.
 ## Installation
 
 Executables are available through the [releases page](https://github.com/nakabonne/ali/releases).
+
+**With Homebrew**
+
+```bash
+brew install nakabonne/ali/ali
+```
+
+**With Go**
+
+```bash
+go get github.com/nakabonne/ali
+```
+
+**With Docker**
+
+```bash
+docker run --rm -it nakabonne/ali ali
+```
 
 ## Usage
 ### Quickstart

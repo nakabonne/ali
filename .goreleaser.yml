@@ -46,3 +46,12 @@ brews:
       name: homebrew-ali
     homepage: 'https://github.com/nakabonne/ali'
     description: 'Generate HTTP load and plot the results in real-time'
+
+dockers:
+  - dockerfile: Dockerfile
+    binaries:
+      - ali
+    image_templates:
+      - "nakabonne/ali:latest"
+      - "nakabonne/ali:{{ .Tag }}"
+      - "nakabonne/ali:v{{ .Major }}.{{ .Minor }}"
