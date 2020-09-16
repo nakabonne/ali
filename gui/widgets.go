@@ -66,11 +66,11 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	headerInput, err := newTextInput("Header: ", "", 30)
+	headerInput, err := newTextInput("Header: ", "", 50)
 	if err != nil {
 		return nil, err
 	}
-	timeoutInput, err := newTextInput("Timeout: ", attacker.DefaultTimeout.String(), 30)
+	timeoutInput, err := newTextInput("Timeout: ", attacker.DefaultTimeout.String(), 50)
 	if err != nil {
 		return nil, err
 	}
