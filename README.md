@@ -2,12 +2,12 @@
 [![Release](https://img.shields.io/github/release/nakabonne/ali.svg?style=flat-square)](https://github.com/nakabonne/ali/releases/latest)
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/nakabonne/ali)
 
-Another load testing tool, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
+A load testing tool aimed to perform real-time analysis, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
 
 ![Screenshot](images/demo.gif)
 
 `ali` comes with a simple terminal based UI, lets you generate HTTP requests and plot the results in real-time.
-With it, real-time analysis can be performed on the terminal.
+With it, real-time analysis can be done on the terminal.
 
 ## Installation
 
@@ -78,7 +78,7 @@ This will help you during long tests.
 ![Screenshot](images/progress.gif)
 
 ### Mouse support
-With the help of [mum4k/termdash](https://github.com/mum4k/termdash), intuitive operation is supported.
+With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intuitive to operate.
 
 ![Screenshot](images/mouse-support.gif)
 
