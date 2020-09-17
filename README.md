@@ -47,7 +47,12 @@ docker run --rm -it nakabonne/ali ali
 
 ## Usage
 ### Quickstart
-Give the target URL and press Enter, then the attack will be launched with default options.
+
+```
+$ ali
+```
+
+Click on the target URL input field, give the URL and press Enter. Then the attack will be launched with default options.
 
 ### Options
 
