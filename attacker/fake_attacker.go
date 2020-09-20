@@ -12,6 +12,7 @@ type fakeAttacker struct {
 
 func (f *fakeAttacker) Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result {
 	resultCh := make(chan *vegeta.Result)
+	defer close(resultCh)
 	for _, r := range f.results {
 		resultCh <- r
 	}
