@@ -115,9 +115,9 @@ func newText(s string) (*text.Text, error) {
 func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, error) {
 	return textinput.New(
 		//textinput.Label(label, cell.FgColor(cell.ColorWhite)),
-		textinput.Border(linestyle.Double),
-		textinput.BorderColor(cell.ColorGreen),
-		textinput.FillColor(cell.ColorDefault),
+		//textinput.Border(linestyle.Double),
+		//textinput.BorderColor(cell.ColorGreen),
+		textinput.FillColor(cell.ColorBlue),
 		textinput.MaxWidthCells(cells),
 		textinput.PlaceHolder(placeHolder),
 		textinput.PlaceHolderColor(cell.ColorDefault),
