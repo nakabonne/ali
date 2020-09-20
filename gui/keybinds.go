@@ -32,12 +32,12 @@ func attack(ctx context.Context, d *drawer) {
 	}
 	target := d.widgets.urlInput.Read()
 	if _, err := url.ParseRequestURI(target); err != nil {
-		d.reportCh <- fmt.Sprintf("Bad URL: %v", err)
+		d.messageCh <- fmt.Sprintf("Bad URL: %v", err)
 		return
 	}
 	opts, err := makeOptions(d.widgets)
 	if err != nil {
-		d.reportCh <- err.Error()
+		d.messageCh <- err.Error()
 		return
 	}
 	requestNum := opts.Rate * int(opts.Duration/time.Second)
@@ -47,7 +47,7 @@ func attack(ctx context.Context, d *drawer) {
 	go d.redrawGauge(ctx, requestNum)
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
 		metrics := attacker.Attack(ctx, t, d.chartCh, o)
-		d.reportCh <- metrics.String()
+		d.metricsCh <- metrics
 		d.chartCh <- &attacker.Result{End: true}
 	}(ctx, d, target, opts)
 }
