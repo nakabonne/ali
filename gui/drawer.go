@@ -2,6 +2,7 @@ package gui
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mum4k/termdash/cell"
@@ -12,10 +13,11 @@ import (
 )
 
 type drawer struct {
-	widgets  *widgets
-	chartCh  chan *attacker.Result
-	gaugeCh  chan bool
-	reportCh chan string
+	widgets   *widgets
+	chartCh   chan *attacker.Result
+	gaugeCh   chan bool
+	metricsCh chan *attacker.Metrics
+	messageCh chan string
 
 	// aims to avoid to perform multiple `redrawChart`.
 	chartDrawing bool
@@ -68,13 +70,82 @@ func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
 	}
 }
 
+const (
+	latenciesTextFormat = `Total: %v
+Mean: %v
+P50: %v
+P90: %v
+P95: %v
+P99: %v
+Max: %v
+Min: %v`
+
+	bytesTextFormat = `In:
+  Total: %v
+  Mean: %v
+Out:
+  Total: %v
+  Mean: %v`
+
+	othersTextFormat = `Earliest: %v
+Latest: %v
+End: %v
+Duration: %v
+Wait: %v
+Requests: %d
+Rate: %f
+Throughput: %f
+Success: %f
+StatusCodes:`
+)
+
 func (d *drawer) redrawReport(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case report := <-d.reportCh:
-			d.widgets.reportText.Write(report, text.WriteReplace())
+		case metrics := <-d.metricsCh:
+			d.widgets.latenciesText.Write(
+				fmt.Sprintf(latenciesTextFormat,
+					metrics.Latencies.Total,
+					metrics.Latencies.Mean,
+					metrics.Latencies.P50,
+					metrics.Latencies.P90,
+					metrics.Latencies.P95,
+					metrics.Latencies.P99,
+					metrics.Latencies.Max,
+					metrics.Latencies.Min,
+				), text.WriteReplace())
+
+			d.widgets.bytesText.Write(
+				fmt.Sprintf(bytesTextFormat,
+					metrics.BytesIn.Total,
+					metrics.BytesIn.Mean,
+					metrics.BytesOut.Total,
+					metrics.BytesOut.Mean,
+				), text.WriteReplace())
+
+			d.widgets.othersText.Write(
+				fmt.Sprintf(othersTextFormat,
+					metrics.Earliest,
+					metrics.Latest,
+					metrics.End,
+					metrics.Duration,
+					metrics.Wait,
+					metrics.Requests,
+					metrics.Rate,
+					metrics.Throughput,
+					metrics.Success,
+				), text.WriteReplace())
+
+			for code, n := range metrics.StatusCodes {
+				d.widgets.othersText.Write(fmt.Sprintf(`
+  %s: %d`, code, n))
+			}
+			for i, e := range metrics.Errors {
+				d.widgets.othersText.Write(fmt.Sprintf(`
+  %d: %s`, i, e))
+			}
 		}
 	}
 }

@@ -44,10 +44,10 @@ func Run() error {
 	}
 
 	d := &drawer{
-		widgets:  w,
-		chartCh:  make(chan *attacker.Result),
-		gaugeCh:  make(chan bool),
-		reportCh: make(chan string),
+		widgets:   w,
+		chartCh:   make(chan *attacker.Result),
+		gaugeCh:   make(chan bool),
+		metricsCh: make(chan *attacker.Metrics),
 	}
 	go d.redrawReport(ctx)
 
@@ -59,7 +59,7 @@ func Run() error {
 func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(65, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
 	raw2 := grid.RowHeightPerc(30,
-		grid.ColWidthPerc(64,
+		grid.ColWidthPerc(50,
 			grid.RowHeightPerc(34, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Target URL"))),
 			grid.RowHeightPerc(33,
 				grid.ColWidthPerc(20, grid.Widget(w.rateLimitInput, container.Border(linestyle.Light), container.BorderTitle("Rate Limit"))),
@@ -70,7 +70,14 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 			),
 			grid.RowHeightPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.Light), container.BorderTitle("Body"))),
 		),
-		grid.ColWidthPerc(35, grid.Widget(w.reportText, container.Border(linestyle.Light), container.BorderTitle("Report"))),
+		grid.ColWidthPerc(50,
+			grid.RowHeightPerc(85,
+				grid.ColWidthPerc(25, grid.Widget(w.latenciesText, container.Border(linestyle.Light), container.BorderTitle("Latencies"))),
+				grid.ColWidthPerc(25, grid.Widget(w.bytesText, container.Border(linestyle.Light), container.BorderTitle("Bytes"))),
+				grid.ColWidthPerc(50, grid.Widget(w.othersText, container.Border(linestyle.Light), container.BorderTitle("Others"))),
+			),
+			grid.RowHeightPerc(15, grid.Widget(w.messageText, container.Border(linestyle.Light), container.BorderTitle("Message"))),
+		),
 	)
 	raw3 := grid.RowHeightPerc(4,
 		grid.ColWidthPerc(64, grid.Widget(w.progressGauge, container.Border(linestyle.None))),

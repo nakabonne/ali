@@ -27,10 +27,16 @@ type widgets struct {
 	bodyInput      *textinput.TextInput
 	headerInput    *textinput.TextInput
 	timeoutInput   *textinput.TextInput
-	latencyChart   *linechart.LineChart
-	reportText     *text.Text
-	progressGauge  *gauge.Gauge
-	navi           *text.Text
+
+	latencyChart *linechart.LineChart
+
+	messageText   *text.Text
+	latenciesText *text.Text
+	bytesText     *text.Text
+	othersText    *text.Text
+
+	progressGauge *gauge.Gauge
+	navi          *text.Text
 }
 
 func newWidgets() (*widgets, error) {
@@ -38,7 +44,19 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	reportText, err := newText("Give the target URL and press Enter, then the attack will be launched.")
+	messageText, err := newText("Give the target URL and press Enter.")
+	if err != nil {
+		return nil, err
+	}
+	latenciesText, err := newText("")
+	if err != nil {
+		return nil, err
+	}
+	bytesText, err := newText("")
+	if err != nil {
+		return nil, err
+	}
+	othersText, err := newText("")
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +105,10 @@ func newWidgets() (*widgets, error) {
 		headerInput:    headerInput,
 		timeoutInput:   timeoutInput,
 		latencyChart:   latencyChart,
-		reportText:     reportText,
+		messageText:    messageText,
+		latenciesText:  latenciesText,
+		bytesText:      bytesText,
+		othersText:     othersText,
 		progressGauge:  progressGauge,
 		navi:           navi,
 	}, nil
@@ -106,8 +127,10 @@ func newText(s string) (*text.Text, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := t.Write(s); err != nil {
-		return nil, err
+	if s != "" {
+		if err := t.Write(s); err != nil {
+			return nil, err
+		}
 	}
 	return t, nil
 }
