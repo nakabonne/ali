@@ -149,8 +149,8 @@ func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, e
 
 func newGauge() (*gauge.Gauge, error) {
 	return gauge.New(
-		gauge.Height(1),
-		gauge.Border(linestyle.Light),
-		gauge.BorderTitle("Progress"),
+		//gauge.Height(1),
+		gauge.Border(linestyle.None),
+		//gauge.BorderTitle("Progress"),
 	)
 }

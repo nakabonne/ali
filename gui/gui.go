@@ -80,7 +80,7 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 		),
 	)
 	raw3 := grid.RowHeightPerc(4,
-		grid.ColWidthPerc(50, grid.Widget(w.progressGauge, container.Border(linestyle.None))),
+		grid.ColWidthPerc(50, grid.Widget(w.progressGauge, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
 		grid.ColWidthPerc(50, grid.Widget(w.navi, container.Border(linestyle.Light))),
 	)
 
