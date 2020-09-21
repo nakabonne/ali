@@ -34,6 +34,12 @@ curl -OL https://github.com/nakabonne/ali/releases/download/v0.1.2/ali_0.1.2_lin
 rpm -i ./ali_0.1.2_linux_amd64.rpm
 ```
 
+**Via AUR**
+
+```bash
+yay -S ali
+```
+
 **Via Go**
 
 ```bash
