@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -61,6 +62,7 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		timeout  time.Duration
 		method   string
 		header   = make(http.Header)
+		body     []byte
 		err      error
 	)
 
@@ -112,12 +114,20 @@ func makeOptions(w *widgets) (attacker.Options, error) {
 		header[key] = append(header[key], val)
 	}
 
+	if f := w.bodyInput.Read(); f != "" {
+		if b, err := ioutil.ReadFile(f); err != nil {
+			return attacker.Options{}, fmt.Errorf("Unable to open %q: %w", f, err)
+		} else {
+			body = b
+		}
+	}
+
 	return attacker.Options{
 		Rate:     rate,
 		Duration: duration,
 		Timeout:  timeout,
 		Method:   method,
-		BodyFile: w.bodyInput.Read(),
+		Body:     body,
 		Header:   header,
 	}, nil
 }
