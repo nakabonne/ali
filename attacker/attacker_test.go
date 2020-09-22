@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
+	"go.uber.org/goleak"
 )
 
 type watcher struct {
@@ -25,6 +26,10 @@ func (w *watcher) countRes(ctx context.Context, wg *sync.WaitGroup) {
 			w.count++
 		}
 	}
+}
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
 }
 
 func TestAttack(t *testing.T) {

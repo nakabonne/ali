@@ -10,4 +10,5 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tsenart/vegeta/v12 v12.8.3
+	go.uber.org/goleak v1.1.10
 )
