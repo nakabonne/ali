@@ -73,8 +73,9 @@ func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
 	}
 }
 
-const (
-	latenciesTextFormat = `Total: %v
+func (d *drawer) redrawMetrics(ctx context.Context) {
+	const (
+		latenciesTextFormat = `Total: %v
 Mean: %v
 P50: %v
 P90: %v
@@ -83,14 +84,14 @@ P99: %v
 Max: %v
 Min: %v`
 
-	bytesTextFormat = `In:
+		bytesTextFormat = `In:
   Total: %v
   Mean: %v
 Out:
   Total: %v
   Mean: %v`
 
-	othersTextFormat = `Earliest: %v
+		othersTextFormat = `Earliest: %v
 Latest: %v
 End: %v
 Duration: %v
@@ -100,9 +101,8 @@ Rate: %f
 Throughput: %f
 Success: %f
 StatusCodes:`
-)
+	)
 
-func (d *drawer) redrawMetrics(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
