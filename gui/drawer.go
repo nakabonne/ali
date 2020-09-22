@@ -102,7 +102,7 @@ Success: %f
 StatusCodes:`
 )
 
-func (d *drawer) redrawReport(ctx context.Context) {
+func (d *drawer) redrawMetrics(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

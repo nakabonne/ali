@@ -50,7 +50,7 @@ func Run() error {
 		metricsCh: make(chan *attacker.Metrics),
 		messageCh: make(chan string),
 	}
-	go d.redrawReport(ctx)
+	go d.redrawMetrics(ctx)
 	go d.redrawMessage(ctx)
 
 	k := keybinds(ctx, cancel, d)
