@@ -44,7 +44,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	messageText, err := newText("Give the target URL and press Enter.")
+	messageText, err := newText("Give the target URL and press Enter")
 	if err != nil {
 		return nil, err
 	}

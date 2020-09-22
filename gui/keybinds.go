@@ -49,6 +49,7 @@ func attack(ctx context.Context, d *drawer) {
 		metrics := attacker.Attack(ctx, t, d.chartCh, o)
 		d.metricsCh <- metrics
 		d.chartCh <- &attacker.Result{End: true}
+		d.messageCh <- "Attack completed"
 	}(ctx, d, target, opts)
 }
 
