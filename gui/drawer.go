@@ -35,6 +35,9 @@ L:
 		case <-ctx.Done():
 			break L
 		case res := <-d.chartCh:
+			if res == nil {
+				break L
+			}
 			if res.End {
 				d.gaugeCh <- true
 				break L
@@ -105,6 +108,9 @@ func (d *drawer) redrawReport(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case metrics := <-d.metricsCh:
+			if metrics == nil {
+				continue
+			}
 			d.widgets.latenciesText.Write(
 				fmt.Sprintf(latenciesTextFormat,
 					metrics.Latencies.Total,
