@@ -4,7 +4,6 @@ import (
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
-	"gopkg.in/yaml.v2"
 )
 
 // Metrics wraps "vegeta.Metrics" to avoid dependency on it.
@@ -59,9 +58,4 @@ func newMetrics(m *vegeta.Metrics) *Metrics {
 		StatusCodes: m.StatusCodes,
 		Errors:      m.Errors,
 	}
-}
-
-func (m *Metrics) String() string {
-	b, _ := yaml.Marshal(m)
-	return string(b)
 }
