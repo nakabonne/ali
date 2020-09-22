@@ -9,13 +9,13 @@ import (
 // Metrics wraps "vegeta.Metrics" to avoid dependency on it.
 type Metrics struct {
 	// Latencies holds computed request latency metrics.
-	Latencies vegeta.LatencyMetrics `json:"latencies"`
+	Latencies LatencyMetrics `json:"latencies"`
 	// Histogram, only if requested
-	//Histogram *vegeta.Histogram `json:"buckets,omitempty"`
+	// Histogram *vegeta.Histogram `json:"buckets,omitempty"`
 	// BytesIn holds computed incoming byte metrics.
-	BytesIn vegeta.ByteMetrics `json:"bytes_in"`
+	BytesIn ByteMetrics `json:"bytes_in"`
 	// BytesOut holds computed outgoing byte metrics.
-	BytesOut vegeta.ByteMetrics `json:"bytes_out"`
+	BytesOut ByteMetrics `json:"bytes_out"`
 	// Earliest is the earliest timestamp in a Result set.
 	Earliest time.Time `json:"earliest"`
 	// Latest is the latest timestamp in a Result set.
@@ -40,12 +40,55 @@ type Metrics struct {
 	Errors []string `json:"errors"`
 }
 
+// LatencyMetrics holds computed request latency metrics.
+type LatencyMetrics struct {
+	// Total is the total latency sum of all requests in an attack.
+	Total time.Duration `json:"total"`
+	// Mean is the mean request latency.
+	Mean time.Duration `json:"mean"`
+	// P50 is the 50th percentile request latency.
+	P50 time.Duration `json:"50th"`
+	// P90 is the 90th percentile request latency.
+	P90 time.Duration `json:"90th"`
+	// P95 is the 95th percentile request latency.
+	P95 time.Duration `json:"95th"`
+	// P99 is the 99th percentile request latency.
+	P99 time.Duration `json:"99th"`
+	// Max is the maximum observed request latency.
+	Max time.Duration `json:"max"`
+	// Min is the minimum observed request latency.
+	Min time.Duration `json:"min"`
+}
+
+// ByteMetrics holds computed byte flow metrics.
+type ByteMetrics struct {
+	// Total is the total number of flowing bytes in an attack.
+	Total uint64 `json:"total"`
+	// Mean is the mean number of flowing bytes per hit.
+	Mean float64 `json:"mean"`
+}
+
 func newMetrics(m *vegeta.Metrics) *Metrics {
 	return &Metrics{
-		Latencies: m.Latencies,
+		Latencies: LatencyMetrics{
+			Total: m.Latencies.Total,
+			Mean:  m.Latencies.Mean,
+			P50:   m.Latencies.P50,
+			P90:   m.Latencies.P90,
+			P95:   m.Latencies.P95,
+			P99:   m.Latencies.P99,
+			Max:   m.Latencies.Max,
+			Min:   m.Latencies.Min,
+		},
 		//Histogram:   m.Histogram,
-		BytesIn:     m.BytesIn,
-		BytesOut:    m.BytesOut,
+		BytesIn: ByteMetrics{
+			Total: m.BytesIn.Total,
+			Mean:  m.BytesIn.Mean,
+		},
+		BytesOut: ByteMetrics{
+			Total: m.BytesOut.Total,
+			Mean:  m.BytesOut.Mean,
+		},
 		Earliest:    m.Earliest,
 		Latest:      m.Latest,
 		End:         m.End,

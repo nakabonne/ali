@@ -7,7 +7,25 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
+
+type watcher struct {
+	resCh chan *Result
+	count int
+}
+
+func (w *watcher) countRes(ctx context.Context, wg *sync.WaitGroup) {
+	for {
+		select {
+		case <-ctx.Done():
+			wg.Done()
+			return
+		case <-w.resCh:
+			w.count++
+		}
+	}
+}
 
 func TestAttack(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -37,27 +55,33 @@ func TestAttack(t *testing.T) {
 			},
 			wantResCount: 0,
 		},
-		/*{
+		{
 			name:   "two result given back",
 			target: "http://host.xz",
 			opts: Options{
 				Attacker: &fakeAttacker{
 					results: []*vegeta.Result{
 						{
-							Attack: "1",
+							Code: 200,
 						},
 						{
-							Attack: "2",
+							Code: 200,
 						},
 					},
 				},
 			},
 			want: &Metrics{
-				StatusCodes: make(map[string]int),
-				Errors:      []string{},
+				Requests:   2,
+				Rate:       2,
+				Throughput: 2,
+				Success:    1,
+				StatusCodes: map[string]int{
+					"200": 2,
+				},
+				Errors: []string{},
 			},
 			wantResCount: 2,
-		},*/
+		},
 	}
 
 	for _, tt := range tests {
@@ -76,22 +100,5 @@ func TestAttack(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantResCount, w.count)
 		})
-	}
-}
-
-type watcher struct {
-	resCh chan *Result
-	count int
-}
-
-func (w *watcher) countRes(ctx context.Context, wg *sync.WaitGroup) {
-	for {
-		select {
-		case <-ctx.Done():
-			wg.Done()
-			return
-		case <-w.resCh:
-			w.count++
-		}
 	}
 }
