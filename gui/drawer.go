@@ -36,7 +36,7 @@ L:
 			break L
 		case res := <-d.chartCh:
 			if res == nil {
-				break L
+				continue
 			}
 			if res.End {
 				d.gaugeCh <- true
