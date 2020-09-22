@@ -149,3 +149,14 @@ func (d *drawer) redrawReport(ctx context.Context) {
 		}
 	}
 }
+
+func (d *drawer) redrawMessage(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case m := <-d.messageCh:
+			d.widgets.messageText.Write(m, text.WriteReplace())
+		}
+	}
+}

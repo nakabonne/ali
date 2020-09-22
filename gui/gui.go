@@ -48,8 +48,10 @@ func Run() error {
 		chartCh:   make(chan *attacker.Result),
 		gaugeCh:   make(chan bool),
 		metricsCh: make(chan *attacker.Metrics),
+		messageCh: make(chan string),
 	}
 	go d.redrawReport(ctx)
+	go d.redrawMessage(ctx)
 
 	k := keybinds(ctx, cancel, d)
 
