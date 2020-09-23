@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/mum4k/termdash"
 	"github.com/mum4k/termdash/container"
@@ -14,7 +15,11 @@ import (
 	"github.com/nakabonne/ali/attacker"
 )
 
-const rootID = "root"
+const (
+	// How often termdash redraws the screen.
+	redrawInterval = 250 * time.Millisecond
+	rootID         = "root"
+)
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 

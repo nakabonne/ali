@@ -2,10 +2,10 @@ package gui
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/linestyle"
+	"github.com/mum4k/termdash/widgetapi"
 	"github.com/mum4k/termdash/widgets/gauge"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
@@ -14,29 +14,44 @@ import (
 	"github.com/nakabonne/ali/attacker"
 )
 
-// redrawInterval is how often termdash redraws the screen.
-const (
-	redrawInterval = 250 * time.Millisecond
-)
+type TextInput interface {
+	widgetapi.Widget
+	Read() string
+}
+
+type LineChart interface {
+	widgetapi.Widget
+	Series(label string, values []float64, opts ...linechart.SeriesOption) error
+}
+
+type Text interface {
+	widgetapi.Widget
+	Write(text string, wOpts ...text.WriteOption) error
+}
+
+type Gauge interface {
+	widgetapi.Widget
+	Percent(p int, opts ...gauge.Option) error
+}
 
 type widgets struct {
-	urlInput       *textinput.TextInput
-	rateLimitInput *textinput.TextInput
-	durationInput  *textinput.TextInput
-	methodInput    *textinput.TextInput
-	bodyInput      *textinput.TextInput
-	headerInput    *textinput.TextInput
-	timeoutInput   *textinput.TextInput
+	urlInput       TextInput
+	rateLimitInput TextInput
+	durationInput  TextInput
+	methodInput    TextInput
+	bodyInput      TextInput
+	headerInput    TextInput
+	timeoutInput   TextInput
 
-	latencyChart *linechart.LineChart
+	latencyChart LineChart
 
-	messageText   *text.Text
-	latenciesText *text.Text
-	bytesText     *text.Text
-	othersText    *text.Text
+	messageText   Text
+	latenciesText Text
+	bytesText     Text
+	othersText    Text
 
-	progressGauge *gauge.Gauge
-	navi          *text.Text
+	progressGauge Gauge
+	navi          Text
 }
 
 func newWidgets() (*widgets, error) {
@@ -114,7 +129,7 @@ func newWidgets() (*widgets, error) {
 	}, nil
 }
 
-func newLineChart() (*linechart.LineChart, error) {
+func newLineChart() (LineChart, error) {
 	return linechart.New(
 		linechart.AxesCellOpts(cell.FgColor(cell.ColorRed)),
 		linechart.YLabelCellOpts(cell.FgColor(cell.ColorGreen)),
@@ -122,7 +137,7 @@ func newLineChart() (*linechart.LineChart, error) {
 	)
 }
 
-func newText(s string) (*text.Text, error) {
+func newText(s string) (Text, error) {
 	t, err := text.New(text.RollContent(), text.WrapAtWords())
 	if err != nil {
 		return nil, err
@@ -135,7 +150,7 @@ func newText(s string) (*text.Text, error) {
 	return t, nil
 }
 
-func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, error) {
+func newTextInput(label, placeHolder string, cells int) (TextInput, error) {
 	return textinput.New(
 		//textinput.Label(label, cell.FgColor(cell.ColorWhite)),
 		//textinput.Border(linestyle.Double),
@@ -147,7 +162,7 @@ func newTextInput(label, placeHolder string, cells int) (*textinput.TextInput, e
 	)
 }
 
-func newGauge() (*gauge.Gauge, error) {
+func newGauge() (Gauge, error) {
 	return gauge.New(
 		//gauge.Height(1),
 		gauge.Border(linestyle.None),
