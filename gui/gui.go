@@ -16,7 +16,13 @@ import (
 
 const rootID = "root"
 
+type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
+
 func Run() error {
+	return run(termdash.Run)
+}
+
+func run(r runner) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -55,7 +61,7 @@ func Run() error {
 
 	k := keybinds(ctx, cancel, d)
 
-	return termdash.Run(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
+	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
