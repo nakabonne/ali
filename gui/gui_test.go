@@ -7,14 +7,15 @@ import (
 
 	"github.com/mum4k/termdash"
 	"github.com/mum4k/termdash/container"
+	"github.com/mum4k/termdash/terminal/termbox"
 	"github.com/mum4k/termdash/terminal/terminalapi"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/goleak"
 )
 
-// TODO: Ensure to kill all goroutine when running unit tests.
-/*func TestMain(m *testing.M) {
+func TestMain(m *testing.M) {
 	goleak.VerifyTestMain(m)
-}*/
+}
 
 func TestRun(t *testing.T) {
 	tests := []struct {
@@ -39,7 +40,7 @@ func TestRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := run(tt.r)
+			err := run(&termbox.Terminal{}, tt.r)
 			assert.Equal(t, tt.wantErr, err != nil)
 		})
 	}

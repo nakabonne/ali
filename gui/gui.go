@@ -19,18 +19,17 @@ const rootID = "root"
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
 func Run() error {
-	return run(termdash.Run)
-}
-
-func run(r runner) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	t, err := termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		return fmt.Errorf("failed to generate terminal interface: %w", err)
 	}
 	defer t.Close()
+	return run(t, termdash.Run)
+}
+
+func run(t *termbox.Terminal, r runner) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	c, err := container.New(t, container.ID(rootID))
 	if err != nil {
