@@ -2,6 +2,7 @@ package gui
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -61,23 +62,25 @@ func TestRedrawChart(t *testing.T) {
 				chartCh: make(chan *attacker.Result),
 				gaugeCh: make(chan bool),
 			}
-			go func() {
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go func(w *sync.WaitGroup) {
 				for {
 					select {
-					case <-ctx.Done():
-						return
 					case end := <-d.gaugeCh:
 						if end {
+							w.Done()
 							return
 						}
 					}
 				}
-			}()
+			}(&wg)
 			go d.redrawChart(ctx, len(tt.results))
 			for _, res := range tt.results {
 				d.chartCh <- res
 			}
 			d.chartCh <- &attacker.Result{End: true}
+			wg.Wait()
 		})
 	}
 }
