@@ -99,8 +99,7 @@ Wait: %v
 Requests: %d
 Rate: %f
 Throughput: %f
-Success: %f
-StatusCodes:`
+Success: %f`
 	)
 
 	for {
@@ -144,9 +143,17 @@ StatusCodes:`
 					metrics.Success,
 				), text.WriteReplace())
 
+			if len(metrics.StatusCodes) > 0 {
+				d.widgets.othersText.Write(`
+StatusCodes:`)
+			}
 			for code, n := range metrics.StatusCodes {
 				d.widgets.othersText.Write(fmt.Sprintf(`
   %s: %d`, code, n))
+			}
+			if len(metrics.Errors) > 0 {
+				d.widgets.othersText.Write(`
+Errors:`)
 			}
 			for i, e := range metrics.Errors {
 				d.widgets.othersText.Write(fmt.Sprintf(`
