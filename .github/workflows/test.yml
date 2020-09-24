@@ -31,7 +31,7 @@ jobs:
     - name: Build
       run: go build
     - name: Test
-      run: go test -v -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt ./...
+      run: make test
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
