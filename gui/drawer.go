@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mum4k/termdash/cell"
@@ -101,10 +102,11 @@ Throughput: %f
 Success: %f`
 )
 
-func (d *drawer) redrawMetrics(ctx context.Context) {
+func (d *drawer) redrawMetrics(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ctx.Done():
+			wg.Done()
 			return
 		case metrics := <-d.metricsCh:
 			if metrics == nil {
@@ -163,10 +165,11 @@ Errors:`
 	}
 }
 
-func (d *drawer) redrawMessage(ctx context.Context) {
+func (d *drawer) redrawMessage(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ctx.Done():
+			wg.Done()
 			return
 		case m := <-d.messageCh:
 			d.widgets.messageText.Write(m, text.WriteReplace())

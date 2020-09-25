@@ -136,13 +136,9 @@ func TestRedrawGauge(t *testing.T) {
 	}
 }
 
-/*
 func TestRedrawMetrics(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	tests := []struct {
 		name          string
@@ -229,6 +225,7 @@ Errors:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			d := &drawer{
 				widgets: &widgets{
 					latenciesText: tt.latenciesText,
@@ -237,18 +234,19 @@ Errors:
 				},
 				metricsCh: make(chan *attacker.Metrics),
 			}
-			go d.redrawMetrics(ctx)
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go d.redrawMetrics(ctx, &wg)
 			d.metricsCh <- tt.metrics
+			cancel()
+			wg.Wait()
 		})
 	}
 }
-*/
+
 func TestRedrawMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	tests := []struct {
 		name    string
@@ -268,12 +266,17 @@ func TestRedrawMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			d := &drawer{
 				widgets:   &widgets{messageText: tt.text},
 				messageCh: make(chan string),
 			}
-			go d.redrawMessage(ctx)
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go d.redrawMessage(ctx, &wg)
 			d.messageCh <- tt.message
+			cancel()
+			wg.Wait()
 		})
 	}
 }
