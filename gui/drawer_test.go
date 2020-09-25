@@ -207,7 +207,8 @@ Out:
 			}(),
 			othersText: func() Text {
 				t := NewMockText(ctrl)
-				t.EXPECT().Write(`Earliest: 2009-11-10 23:00:00 +0000 UTC
+				gomock.InOrder(
+					t.EXPECT().Write(`Earliest: 2009-11-10 23:00:00 +0000 UTC
 Latest: 2009-11-10 23:00:00 +0000 UTC
 End: 2009-11-10 23:00:00 +0000 UTC
 Duration: 1ns
@@ -215,15 +216,16 @@ Wait: 1ns
 Requests: 1
 Rate: 1.000000
 Throughput: 1.000000
-Success: 1.000000`, gomock.Any())
-				t.EXPECT().Write(`
-StatusCodes:`)
-				t.EXPECT().Write(`
-  200: 2`)
-				t.EXPECT().Write(`
-Errors:`)
-				t.EXPECT().Write(`
-  0: error1`)
+Success: 1.000000`, gomock.Any()),
+					t.EXPECT().Write(`
+StatusCodes:`),
+					t.EXPECT().Write(`
+  200: 2`),
+					t.EXPECT().Write(`
+Errors:`),
+					t.EXPECT().Write(`
+  0: error1`),
+				)
 				return t
 			}(),
 		},
