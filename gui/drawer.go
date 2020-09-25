@@ -73,9 +73,8 @@ func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
 	}
 }
 
-func (d *drawer) redrawMetrics(ctx context.Context) {
-	const (
-		latenciesTextFormat = `Total: %v
+const (
+	latenciesTextFormat = `Total: %v
 Mean: %v
 P50: %v
 P90: %v
@@ -84,14 +83,14 @@ P99: %v
 Max: %v
 Min: %v`
 
-		bytesTextFormat = `In:
+	bytesTextFormat = `In:
   Total: %v
   Mean: %v
 Out:
   Total: %v
   Mean: %v`
 
-		othersTextFormat = `Earliest: %v
+	othersTextFormat = `Earliest: %v
 Latest: %v
 End: %v
 Duration: %v
@@ -100,8 +99,9 @@ Requests: %d
 Rate: %f
 Throughput: %f
 Success: %f`
-	)
+)
 
+func (d *drawer) redrawMetrics(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -130,35 +130,35 @@ Success: %f`
 					metrics.BytesOut.Mean,
 				), text.WriteReplace())
 
-			d.widgets.othersText.Write(
-				fmt.Sprintf(othersTextFormat,
-					metrics.Earliest,
-					metrics.Latest,
-					metrics.End,
-					metrics.Duration,
-					metrics.Wait,
-					metrics.Requests,
-					metrics.Rate,
-					metrics.Throughput,
-					metrics.Success,
-				), text.WriteReplace())
+			othersText := fmt.Sprintf(othersTextFormat,
+				metrics.Earliest,
+				metrics.Latest,
+				metrics.End,
+				metrics.Duration,
+				metrics.Wait,
+				metrics.Requests,
+				metrics.Rate,
+				metrics.Throughput,
+				metrics.Success,
+			)
 
 			if len(metrics.StatusCodes) > 0 {
-				d.widgets.othersText.Write(`
-StatusCodes:`)
+				othersText += `
+StatusCodes:`
 			}
 			for code, n := range metrics.StatusCodes {
-				d.widgets.othersText.Write(fmt.Sprintf(`
-  %s: %d`, code, n))
+				othersText += fmt.Sprintf(`
+  %s: %d`, code, n)
 			}
 			if len(metrics.Errors) > 0 {
-				d.widgets.othersText.Write(`
-Errors:`)
+				othersText += `
+Errors:`
 			}
 			for i, e := range metrics.Errors {
-				d.widgets.othersText.Write(fmt.Sprintf(`
-  %d: %s`, i, e))
+				othersText += fmt.Sprintf(`
+  %d: %s`, i, e)
 			}
+			d.widgets.othersText.Write(othersText, text.WriteReplace())
 		}
 	}
 }
