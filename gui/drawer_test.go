@@ -148,6 +148,21 @@ func TestRedrawMetrics(t *testing.T) {
 		othersText    Text
 	}{
 		{
+			name: "nil metrics given",
+			latenciesText: func() Text {
+				t := NewMockText(ctrl)
+				return t
+			}(),
+			bytesText: func() Text {
+				t := NewMockText(ctrl)
+				return t
+			}(),
+			othersText: func() Text {
+				t := NewMockText(ctrl)
+				return t
+			}(),
+		},
+		{
 			name: "with errors",
 			metrics: &attacker.Metrics{
 				Latencies: attacker.LatencyMetrics{

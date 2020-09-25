@@ -1,3 +1,6 @@
 ignore:
   - "gui/widgets.mock.go"
 
+coverage:
+  range: 60..90
+  round: up
