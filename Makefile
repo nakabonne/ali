@@ -1,7 +1,7 @@
 
 .PHONY: test
 test:
-	go test -v -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt ./...
+	go test -v -coverpkg=./... -covermode=atomic -coverprofile=coverage.txt ./attacker/... ./gui/...
 
 .PHONY: mockgen
 mockgen:
