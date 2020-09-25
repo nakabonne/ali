@@ -29,6 +29,7 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer) func(*
 
 func attack(ctx context.Context, d *drawer) {
 	if d.chartDrawing {
+		d.messageCh <- "Wait until the attack is over"
 		return
 	}
 	target := d.widgets.urlInput.Read()
