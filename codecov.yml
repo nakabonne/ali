@@ -1,6 +1,5 @@
 ignore:
   - "gui/widgets.mock.go"
-  - "attacker/fake_attacker.go"
 
 coverage:
   range: 60..90
