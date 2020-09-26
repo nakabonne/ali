@@ -37,6 +37,7 @@ rpm -i ./ali_0.2.5_linux_amd64.rpm
 
 **Via AUR**
 
+Thanks to [orhun](https://github.com/orhun), it's available as [ali](https://aur.archlinux.org/packages/ali) in the Arch User Repository.
 ```bash
 yay -S ali
 ```
