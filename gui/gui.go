@@ -3,7 +3,6 @@ package gui
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/mum4k/termdash"
@@ -34,9 +33,6 @@ func Run() error {
 }
 
 func run(t *termbox.Terminal, r runner) error {
-	var wg sync.WaitGroup
-	defer wg.Wait()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -64,10 +60,8 @@ func run(t *termbox.Terminal, r runner) error {
 		metricsCh: make(chan *attacker.Metrics),
 		messageCh: make(chan string),
 	}
-	wg.Add(1)
-	go d.redrawMetrics(ctx, &wg)
-	wg.Add(1)
-	go d.redrawMessage(ctx, &wg)
+	go d.redrawMetrics(ctx)
+	go d.redrawMessage(ctx)
 
 	k := keybinds(ctx, cancel, d)
 
