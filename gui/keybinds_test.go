@@ -7,10 +7,40 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/mum4k/termdash/keyboard"
+	"github.com/mum4k/termdash/terminal/terminalapi"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nakabonne/ali/attacker"
 )
+
+func TestKeybinds(t *testing.T) {
+	tests := []struct {
+		name string
+		key  keyboard.Key
+	}{
+		{
+			name: "quit",
+			key:  keyboard.KeyCtrlC,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			go func(ctx context.Context) {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					}
+				}
+			}(ctx)
+			f := keybinds(ctx, cancel, nil)
+			f(&terminalapi.Keyboard{Key: tt.key})
+			// If ctx wasn't expired, goleak will find it.
+		})
+	}
+}
 
 func TestAttack(t *testing.T) {
 	ctrl := gomock.NewController(t)
