@@ -2,7 +2,6 @@ package gui
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
@@ -235,12 +234,10 @@ Errors:
 				},
 				metricsCh: make(chan *attacker.Metrics),
 			}
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go d.redrawMetrics(ctx, &wg)
+			go d.redrawMetrics(ctx)
 			d.metricsCh <- tt.metrics
 			cancel()
-			wg.Wait()
+			<-d.metricsCh
 		})
 	}
 }
@@ -272,12 +269,10 @@ func TestRedrawMessage(t *testing.T) {
 				widgets:   &widgets{messageText: tt.text},
 				messageCh: make(chan string),
 			}
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go d.redrawMessage(ctx, &wg)
+			go d.redrawMessage(ctx)
 			d.messageCh <- tt.message
 			cancel()
-			wg.Wait()
+			<-d.messageCh
 		})
 	}
 }
