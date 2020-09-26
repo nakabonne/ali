@@ -60,27 +60,13 @@ func TestRedrawChart(t *testing.T) {
 			d := &drawer{
 				widgets: &widgets{latencyChart: tt.latencyChart},
 				chartCh: make(chan *attacker.Result),
-				gaugeCh: make(chan bool),
+				gaugeCh: make(chan bool, 100),
 			}
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go func(w *sync.WaitGroup) {
-				for {
-					select {
-					case end := <-d.gaugeCh:
-						if end {
-							w.Done()
-							return
-						}
-					}
-				}
-			}(&wg)
 			go d.redrawChart(ctx, len(tt.results))
 			for _, res := range tt.results {
 				d.chartCh <- res
 			}
 			d.chartCh <- &attacker.Result{End: true}
-			wg.Wait()
 		})
 	}
 }

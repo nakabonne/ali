@@ -3,7 +3,6 @@ package gui
 import (
 	"context"
 	"net/http"
-	"sync"
 	"testing"
 	"time"
 
@@ -17,17 +16,18 @@ func TestAttack(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	tests := []struct {
 		name           string
 		urlInput       TextInput
 		rateLimitInput TextInput
-		messageCh      chan string
 		chartDrawing   bool
 	}{
 		{
 			name:         "chart is drawing",
 			chartDrawing: true,
-			messageCh:    make(chan string),
 		},
 		{
 			name: "bad url given",
@@ -36,12 +36,10 @@ func TestAttack(t *testing.T) {
 				m.EXPECT().Read().Return("bad-url")
 				return m
 			}(),
-			messageCh: make(chan string),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			d := &drawer{
 				widgets: &widgets{
 					urlInput:       tt.urlInput,
@@ -59,26 +57,10 @@ func TestAttack(t *testing.T) {
 					progressGauge:  nil,
 					navi:           nil,
 				},
-				messageCh:    tt.messageCh,
+				messageCh:    make(chan string, 100),
 				chartDrawing: tt.chartDrawing,
 			}
-
-			var wg sync.WaitGroup
-			wg.Add(1)
-			go func() {
-				for {
-					select {
-					case <-ctx.Done():
-						wg.Done()
-						return
-					case <-tt.messageCh:
-					}
-				}
-			}()
-
 			attack(ctx, d)
-			cancel()
-			wg.Wait()
 		})
 	}
 }
