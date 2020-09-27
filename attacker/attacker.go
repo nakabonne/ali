@@ -2,6 +2,7 @@ package attacker
 
 import (
 	"context"
+	"math"
 	"net/http"
 	"time"
 
@@ -9,10 +10,12 @@ import (
 )
 
 const (
-	DefaultRate     = 50
-	DefaultDuration = 10 * time.Second
-	DefaultTimeout  = 30 * time.Second
-	DefaultMethod   = http.MethodGet
+	DefaultRate       = 50
+	DefaultDuration   = 10 * time.Second
+	DefaultTimeout    = 30 * time.Second
+	DefaultMethod     = http.MethodGet
+	DefaultWorkers    = 10
+	DefaultMaxWorkers = math.MaxUint64
 )
 
 type Attacker interface {
@@ -22,12 +25,14 @@ type Attacker interface {
 
 // Options provides optional settings to attack.
 type Options struct {
-	Rate     int
-	Duration time.Duration
-	Timeout  time.Duration
-	Method   string
-	Body     []byte
-	Header   http.Header
+	Rate       int
+	Duration   time.Duration
+	Timeout    time.Duration
+	Method     string
+	Body       []byte
+	Header     http.Header
+	Workers    uint64
+	MaxWorkers uint64
 
 	Attacker Attacker
 }
@@ -49,8 +54,18 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if opts.Method == "" {
 		opts.Method = DefaultMethod
 	}
+	if opts.Workers == 0 {
+		opts.Workers = DefaultWorkers
+	}
+	if opts.MaxWorkers == 0 {
+		opts.MaxWorkers = DefaultMaxWorkers
+	}
 	if opts.Attacker == nil {
-		opts.Attacker = vegeta.NewAttacker(vegeta.Timeout(opts.Timeout))
+		opts.Attacker = vegeta.NewAttacker(
+			vegeta.Timeout(opts.Timeout),
+			vegeta.Workers(opts.Workers),
+			vegeta.MaxWorkers(opts.MaxWorkers),
+		)
 	}
 
 	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
