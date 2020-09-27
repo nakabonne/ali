@@ -13,7 +13,7 @@ coverage:
         if_ci_failed: success
     patch:
       default:
-        target: 70%
+        target: 0%
         threshold: 20%
         if_no_uploads: success
         if_not_found: success
