@@ -1,5 +1,5 @@
 # ali
-[![codecov](https://codecov.io/gh/nakabonne/ali/branch/master/graph/badge.svg)](https://codecov.io/gh/nakabonne/ali)
+[![codecov.io Code Coverage](https://img.shields.io/codecov/c/github/nakabonne/ali.svg?maxAge=2592000)](https://codecov.io/github/nakabonne/ali?branch=master)
 [![Release](https://img.shields.io/github/release/nakabonne/ali.svg?color=orange)](https://github.com/nakabonne/ali/releases/latest)
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/nakabonne/ali)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nakabonne/ali)](https://goreportcard.com/report/github.com/nakabonne/ali)
