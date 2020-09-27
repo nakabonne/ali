@@ -11,3 +11,10 @@ coverage:
         threshold: 20%
         if_not_found: success
         if_ci_failed: success
+    patch:
+      default:
+        target: 70%
+        threshold: 20%
+        if_no_uploads: success
+        if_not_found: success
+        if_ci_failed: success
