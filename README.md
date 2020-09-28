@@ -97,7 +97,7 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intui
 - [tsenart/vegeta](https://github.com/tsenart/vegeta)
 
 
-## LoadMap
+## Roadmap
 - Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
 - Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
 - Better UI
