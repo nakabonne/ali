@@ -16,6 +16,7 @@ const (
 	DefaultMethod     = http.MethodGet
 	DefaultWorkers    = 10
 	DefaultMaxWorkers = math.MaxUint64
+	DefaultMaxBody    = int64(-1)
 )
 
 type Attacker interface {
@@ -33,6 +34,7 @@ type Options struct {
 	Header     http.Header
 	Workers    uint64
 	MaxWorkers uint64
+	MaxBody    int64
 
 	Attacker Attacker
 }
@@ -60,11 +62,15 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 	if opts.MaxWorkers == 0 {
 		opts.MaxWorkers = DefaultMaxWorkers
 	}
+	if opts.MaxBody == 0 {
+		opts.MaxBody = DefaultMaxBody
+	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
 			vegeta.Timeout(opts.Timeout),
 			vegeta.Workers(opts.Workers),
 			vegeta.MaxWorkers(opts.MaxWorkers),
+			vegeta.MaxBody(opts.MaxBody),
 		)
 	}
 
