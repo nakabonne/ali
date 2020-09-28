@@ -22,5 +22,4 @@ func (f *fakeAttacker) Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, stri
 }
 
 func (f *fakeAttacker) Stop() {
-	return
 }
