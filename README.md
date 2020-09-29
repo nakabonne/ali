@@ -98,6 +98,7 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intui
 
 
 ## Roadmap
+- Better UI
+  - Eliminate field-based configuration and only support configuration through cli flags
 - Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
 - Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
-- Better UI
