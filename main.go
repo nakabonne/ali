@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/k0kubun/pp"
 	flag "github.com/spf13/pflag"
@@ -19,8 +20,17 @@ var (
 	flagSet = flag.NewFlagSet("ali", flag.ContinueOnError)
 
 	usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: ali [<flag> ...]")
+		fmt.Fprintln(os.Stderr, `Usage:
+  ali [flags] <target URL>
+
+Flags:`)
 		flagSet.PrintDefaults()
+		fmt.Println("")
+		fmt.Fprintln(os.Stderr, `Examples:
+  ali --duration=10m --rate=100 http://exmple.com`)
+		fmt.Println("")
+		fmt.Fprintln(os.Stderr, `Author:
+  Ryo Nakao <ryo@nakao.dev>`)
 	}
 	// Automatically populated by goreleaser during build
 	version = "unversioned"
@@ -29,6 +39,14 @@ var (
 )
 
 type cli struct {
+	target   string
+	rate     int
+	duration time.Duration
+	timeout  time.Duration
+	method   string
+	header   string
+	body     string
+
 	debug   bool
 	version bool
 	stdout  io.Writer
@@ -40,6 +58,12 @@ func main() {
 		stdout: os.Stdout,
 		stderr: os.Stderr,
 	}
+	flagSet.IntVarP(&c.rate, "rate", "r", 50, "the request rate per second to issue against the targets")
+	flagSet.DurationVarP(&c.duration, "duration", "d", time.Second*10, "the amount of time to issue requests to the targets")
+	flagSet.DurationVarP(&c.timeout, "timeout", "t", time.Second*30, "the timeout for each request")
+	flagSet.StringVarP(&c.method, "method", "m", "GET", "an HTTP request method for each request")
+	flagSet.StringVarP(&c.header, "header", "H", "", "a request header to be sent")
+	flagSet.StringVarP(&c.body, "body", "b", "", "the file whose content will be set as the http request body")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "print the current version")
 	flagSet.BoolVar(&c.debug, "debug", false, "run in debug mode")
 	flagSet.Usage = usage
@@ -50,13 +74,18 @@ func main() {
 		return
 	}
 
-	os.Exit(c.run())
+	os.Exit(c.run(flagSet.Args()))
 }
 
-func (c *cli) run() int {
+func (c *cli) run(args []string) int {
 	if c.version {
 		fmt.Fprintf(c.stderr, "version=%s, commit=%s, buildDate=%s, os=%s, arch=%s\n", version, commit, date, runtime.GOOS, runtime.GOARCH)
 		return 0
+	}
+	if len(args) == 0 {
+		fmt.Fprintln(c.stderr, "no target given")
+		usage()
+		return 1
 	}
 	setDebug(nil, c.debug)
 
