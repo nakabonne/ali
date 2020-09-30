@@ -7,8 +7,7 @@ A load testing tool aimed to perform real-time analysis, inspired by [vegeta](ht
 
 ![Screenshot](images/demo.gif)
 
-`ali` comes with a simple terminal based UI, lets you generate HTTP requests and plot the results in real-time.
-With it, real-time analysis can be done on the terminal.
+`ali` comes with a terminal-based UI where you can plot the metrics in real-time, so lets you perform real-time analysis on the terminal.
 
 ## Installation
 
@@ -68,7 +67,7 @@ Click on the target URL input field, give the URL and press Enter. Then the atta
 
 | Name | Description | Default |
 |------|-------------|---------|
-| Rate Limit | The request rate per time unit to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
+| Rate Limit | The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
 | Duration | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
 | Timeout | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
 | Method | An HTTP request method for each request. | GET |
