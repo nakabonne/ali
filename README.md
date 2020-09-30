@@ -64,6 +64,8 @@ Click on the target URL input field, give the URL and press Enter. Then the atta
 
 ### Options
 
+**Note** that UI field-based configuration is planned to eliminated and will only support configuration through CLI flags.
+
 | Name | Description | Default |
 |------|-------------|---------|
 | Rate Limit | The request rate per time unit to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
