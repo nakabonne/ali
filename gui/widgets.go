@@ -2,7 +2,6 @@ package gui
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/linestyle"
@@ -10,15 +9,9 @@ import (
 	"github.com/mum4k/termdash/widgets/gauge"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
-	"github.com/mum4k/termdash/widgets/textinput"
 
 	"github.com/nakabonne/ali/attacker"
 )
-
-type TextInput interface {
-	widgetapi.Widget
-	Read() string
-}
 
 type LineChart interface {
 	widgetapi.Widget
@@ -36,14 +29,6 @@ type Gauge interface {
 }
 
 type widgets struct {
-	urlInput       TextInput
-	rateLimitInput TextInput
-	durationInput  TextInput
-	methodInput    TextInput
-	bodyInput      TextInput
-	headerInput    TextInput
-	timeoutInput   TextInput
-
 	latencyChart LineChart
 
 	paramsText    Text
@@ -88,54 +73,19 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlInput, err := newTextInput("Target URL: ", "http://", 200)
-	if err != nil {
-		return nil, err
-	}
-	rateLimitInput, err := newTextInput("Rate limit: ", strconv.Itoa(attacker.DefaultRate), 50)
-	if err != nil {
-		return nil, err
-	}
-	durationInput, err := newTextInput("Duration: ", attacker.DefaultDuration.String(), 50)
-	if err != nil {
-		return nil, err
-	}
-	methodInput, err := newTextInput("Method: ", attacker.DefaultMethod, 50)
-	if err != nil {
-		return nil, err
-	}
-	bodyInput, err := newTextInput("Body: ", "", 200)
-	if err != nil {
-		return nil, err
-	}
-	headerInput, err := newTextInput("Header: ", "", 50)
-	if err != nil {
-		return nil, err
-	}
-	timeoutInput, err := newTextInput("Timeout: ", attacker.DefaultTimeout.String(), 50)
-	if err != nil {
-		return nil, err
-	}
 	progressGauge, err := newGauge()
 	if err != nil {
 		return nil, err
 	}
 	return &widgets{
-		urlInput:       urlInput,
-		rateLimitInput: rateLimitInput,
-		durationInput:  durationInput,
-		methodInput:    methodInput,
-		bodyInput:      bodyInput,
-		headerInput:    headerInput,
-		timeoutInput:   timeoutInput,
-		latencyChart:   latencyChart,
-		paramsText:     paramsText,
-		messageText:    messageText,
-		latenciesText:  latenciesText,
-		bytesText:      bytesText,
-		othersText:     othersText,
-		progressGauge:  progressGauge,
-		navi:           navi,
+		latencyChart:  latencyChart,
+		paramsText:    paramsText,
+		messageText:   messageText,
+		latenciesText: latenciesText,
+		bytesText:     bytesText,
+		othersText:    othersText,
+		progressGauge: progressGauge,
+		navi:          navi,
 	}, nil
 }
 
@@ -158,18 +108,6 @@ func newText(s string) (Text, error) {
 		}
 	}
 	return t, nil
-}
-
-func newTextInput(label, placeHolder string, cells int) (TextInput, error) {
-	return textinput.New(
-		//textinput.Label(label, cell.FgColor(cell.ColorWhite)),
-		//textinput.Border(linestyle.Double),
-		//textinput.BorderColor(cell.ColorGreen),
-		textinput.FillColor(cell.ColorBlue),
-		textinput.MaxWidthCells(cells),
-		textinput.PlaceHolder(placeHolder),
-		textinput.PlaceHolderColor(cell.ColorDefault),
-	)
 }
 
 func newGauge() (Gauge, error) {

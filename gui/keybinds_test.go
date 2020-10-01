@@ -48,10 +48,8 @@ func TestAttack(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name           string
-		urlInput       TextInput
-		rateLimitInput TextInput
-		chartDrawing   bool
+		name         string
+		chartDrawing bool
 	}{
 		{
 			name:         "chart is drawing",
@@ -62,20 +60,13 @@ func TestAttack(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
 				widgets: &widgets{
-					urlInput:       tt.urlInput,
-					rateLimitInput: tt.rateLimitInput,
-					durationInput:  nil,
-					methodInput:    nil,
-					bodyInput:      nil,
-					headerInput:    nil,
-					timeoutInput:   nil,
-					latencyChart:   nil,
-					messageText:    nil,
-					latenciesText:  nil,
-					bytesText:      nil,
-					othersText:     nil,
-					progressGauge:  nil,
-					navi:           nil,
+					latencyChart:  nil,
+					messageText:   nil,
+					latenciesText: nil,
+					bytesText:     nil,
+					othersText:    nil,
+					progressGauge: nil,
+					navi:          nil,
 				},
 				messageCh:    make(chan string, 100),
 				chartDrawing: tt.chartDrawing,
