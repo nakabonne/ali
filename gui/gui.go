@@ -23,16 +23,16 @@ const (
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
-func Run() error {
+func Run(opts *attacker.Options) error {
 	t, err := termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		return fmt.Errorf("failed to generate terminal interface: %w", err)
 	}
 	defer t.Close()
-	return run(t, termdash.Run)
+	return run(t, termdash.Run, opts)
 }
 
-func run(t *termbox.Terminal, r runner) error {
+func run(t *termbox.Terminal, r runner, opts *attacker.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -63,7 +63,7 @@ func run(t *termbox.Terminal, r runner) error {
 	go d.redrawMetrics(ctx)
 	go d.redrawMessage(ctx)
 
-	k := keybinds(ctx, cancel, d)
+	k := keybinds(ctx, cancel, d, *opts)
 
 	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }

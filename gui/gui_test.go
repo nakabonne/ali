@@ -11,6 +11,8 @@ import (
 	"github.com/mum4k/termdash/terminal/terminalapi"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/goleak"
+
+	"github.com/nakabonne/ali/attacker"
 )
 
 func TestMain(m *testing.M) {
@@ -40,7 +42,7 @@ func TestRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := run(&termbox.Terminal{}, tt.r)
+			err := run(&termbox.Terminal{}, tt.r, &attacker.Options{})
 			assert.Equal(t, tt.wantErr, err != nil)
 		})
 	}
