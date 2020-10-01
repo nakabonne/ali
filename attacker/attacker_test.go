@@ -74,8 +74,7 @@ func TestAttack(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resCh := make(chan *Result, 100)
 			metricsCh := make(chan *Metrics, 100)
-			got := Attack(ctx, tt.target, resCh, metricsCh, tt.opts)
-			assert.Equal(t, tt.want, got)
+			Attack(ctx, tt.target, resCh, metricsCh, tt.opts)
 			assert.Equal(t, tt.wantResCount, len(resCh))
 		})
 	}
