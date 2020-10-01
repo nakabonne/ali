@@ -17,6 +17,7 @@ type drawer struct {
 	chartCh   chan *attacker.Result
 	gaugeCh   chan bool
 	metricsCh chan *attacker.Metrics
+	// TODO: Remove
 	messageCh chan string
 
 	// aims to avoid to perform multiple `redrawChart`.
@@ -90,15 +91,15 @@ Out:
   Total: %v
   Mean: %v`
 
-	othersTextFormat = `Earliest: %v
-Latest: %v
-End: %v
-Duration: %v
+	othersTextFormat = `Duration: %v
 Wait: %v
 Requests: %d
 Rate: %f
 Throughput: %f
-Success: %f`
+Success: %f
+Earliest: %v
+Latest: %v
+End: %v`
 )
 
 func (d *drawer) redrawMetrics(ctx context.Context) {
@@ -131,35 +132,31 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 					metrics.BytesOut.Mean,
 				), text.WriteReplace())
 
-			othersText := fmt.Sprintf(othersTextFormat,
-				metrics.Earliest,
-				metrics.Latest,
-				metrics.End,
+			d.widgets.othersText.Write(fmt.Sprintf(othersTextFormat,
 				metrics.Duration,
 				metrics.Wait,
 				metrics.Requests,
 				metrics.Rate,
 				metrics.Throughput,
 				metrics.Success,
-			)
+				metrics.Earliest,
+				metrics.Latest,
+				metrics.End,
+			), text.WriteReplace())
 
-			if len(metrics.StatusCodes) > 0 {
-				othersText += `
-StatusCodes:`
-			}
+			codesText := ""
 			for code, n := range metrics.StatusCodes {
-				othersText += fmt.Sprintf(`
-  %s: %d`, code, n)
+				codesText += fmt.Sprintf(`%q: %d
+`, code, n)
 			}
-			if len(metrics.Errors) > 0 {
-				othersText += `
-Errors:`
-			}
+			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
+
+			errorsText := ""
 			for i, e := range metrics.Errors {
-				othersText += fmt.Sprintf(`
-  %d: %s`, i, e)
+				errorsText += fmt.Sprintf(`%d: %s
+`, i, e)
 			}
-			d.widgets.othersText.Write(othersText, text.WriteReplace())
+			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
 		}
 	}
 }

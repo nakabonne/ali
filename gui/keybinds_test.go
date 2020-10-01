@@ -2,14 +2,12 @@ package gui
 
 import (
 	"context"
-	"net/http"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/mum4k/termdash/keyboard"
 	"github.com/mum4k/termdash/terminal/terminalapi"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -35,7 +33,7 @@ func TestKeybinds(t *testing.T) {
 					}
 				}
 			}(ctx)
-			f := keybinds(ctx, cancel, nil)
+			f := keybinds(ctx, cancel, nil, "", attacker.Options{})
 			f(&terminalapi.Keyboard{Key: tt.key})
 			// If ctx wasn't expired, goleak will find it.
 		})
@@ -50,52 +48,35 @@ func TestAttack(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name           string
-		urlInput       TextInput
-		rateLimitInput TextInput
-		chartDrawing   bool
+		name         string
+		chartDrawing bool
 	}{
 		{
 			name:         "chart is drawing",
 			chartDrawing: true,
-		},
-		{
-			name: "bad url given",
-			urlInput: func() TextInput {
-				m := NewMockTextInput(ctrl)
-				m.EXPECT().Read().Return("bad-url")
-				return m
-			}(),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
 				widgets: &widgets{
-					urlInput:       tt.urlInput,
-					rateLimitInput: tt.rateLimitInput,
-					durationInput:  nil,
-					methodInput:    nil,
-					bodyInput:      nil,
-					headerInput:    nil,
-					timeoutInput:   nil,
-					latencyChart:   nil,
-					messageText:    nil,
-					latenciesText:  nil,
-					bytesText:      nil,
-					othersText:     nil,
-					progressGauge:  nil,
-					navi:           nil,
+					latencyChart:  nil,
+					messageText:   nil,
+					latenciesText: nil,
+					bytesText:     nil,
+					othersText:    nil,
+					progressGauge: nil,
+					navi:          nil,
 				},
 				messageCh:    make(chan string, 100),
 				chartDrawing: tt.chartDrawing,
 			}
-			attack(ctx, d)
+			attack(ctx, d, "", attacker.Options{})
 		})
 	}
 }
 
-func TestMakeOptions(t *testing.T) {
+/*func TestMakeOptions(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -346,28 +327,4 @@ func TestMakeOptions(t *testing.T) {
 		})
 	}
 }
-
-func TestValidateMethod(t *testing.T) {
-	tests := []struct {
-		name   string
-		method string
-		want   bool
-	}{
-		{
-			name:   "wrong method",
-			method: "WRONG",
-			want:   false,
-		},
-		{
-			name:   "right method",
-			method: "GET",
-			want:   true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := validateMethod(tt.method)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
+*/

@@ -23,16 +23,16 @@ const (
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
-func Run() error {
+func Run(targetURL string, opts *attacker.Options) error {
 	t, err := termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
 	if err != nil {
 		return fmt.Errorf("failed to generate terminal interface: %w", err)
 	}
 	defer t.Close()
-	return run(t, termdash.Run)
+	return run(t, termdash.Run, targetURL, opts)
 }
 
-func run(t *termbox.Terminal, r runner) error {
+func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -41,7 +41,7 @@ func run(t *termbox.Terminal, r runner) error {
 		return fmt.Errorf("failed to generate container: %w", err)
 	}
 
-	w, err := newWidgets()
+	w, err := newWidgets(targetURL, opts)
 	if err != nil {
 		return fmt.Errorf("failed to generate widgets: %w", err)
 	}
@@ -63,37 +63,26 @@ func run(t *termbox.Terminal, r runner) error {
 	go d.redrawMetrics(ctx)
 	go d.redrawMessage(ctx)
 
-	k := keybinds(ctx, cancel, d)
+	k := keybinds(ctx, cancel, d, targetURL, *opts)
 
 	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }
 
 func gridLayout(w *widgets) ([]container.Option, error) {
-	raw1 := grid.RowHeightPerc(65, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
-	raw2 := grid.RowHeightPerc(30,
-		grid.ColWidthPerc(50,
-			grid.RowHeightPerc(34, grid.Widget(w.urlInput, container.Border(linestyle.Light), container.BorderTitle("Target URL"))),
-			grid.RowHeightPerc(33,
-				grid.ColWidthPerc(20, grid.Widget(w.rateLimitInput, container.Border(linestyle.Light), container.BorderTitle("Rate Limit"))),
-				grid.ColWidthPerc(20, grid.Widget(w.durationInput, container.Border(linestyle.Light), container.BorderTitle("Duration"))),
-				grid.ColWidthPerc(20, grid.Widget(w.timeoutInput, container.Border(linestyle.Light), container.BorderTitle("Timeout"))),
-				grid.ColWidthPerc(20, grid.Widget(w.methodInput, container.Border(linestyle.Light), container.BorderTitle("Method"))),
-				grid.ColWidthPerc(19, grid.Widget(w.headerInput, container.Border(linestyle.Light), container.BorderTitle("Header"))),
-			),
-			grid.RowHeightPerc(33, grid.Widget(w.bodyInput, container.Border(linestyle.Light), container.BorderTitle("Body"))),
+	raw1 := grid.RowHeightPerc(70, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
+	raw2 := grid.RowHeightPerc(25,
+		grid.ColWidthPerc(15, grid.Widget(w.paramsText, container.Border(linestyle.Light), container.BorderTitle("Parameters"))),
+		grid.ColWidthPerc(15, grid.Widget(w.latenciesText, container.Border(linestyle.Light), container.BorderTitle("Latencies"))),
+		grid.ColWidthPerc(15, grid.Widget(w.bytesText, container.Border(linestyle.Light), container.BorderTitle("Bytes"))),
+		grid.ColWidthPerc(15,
+			grid.RowHeightPerc(50, grid.Widget(w.statusCodesText, container.Border(linestyle.Light), container.BorderTitle("Status Codes"))),
+			grid.RowHeightPerc(50, grid.Widget(w.errorsText, container.Border(linestyle.Light), container.BorderTitle("Errors"))),
 		),
-		grid.ColWidthPerc(50,
-			grid.RowHeightPerc(85,
-				grid.ColWidthPerc(25, grid.Widget(w.latenciesText, container.Border(linestyle.Light), container.BorderTitle("Latencies"))),
-				grid.ColWidthPerc(25, grid.Widget(w.bytesText, container.Border(linestyle.Light), container.BorderTitle("Bytes"))),
-				grid.ColWidthPerc(50, grid.Widget(w.othersText, container.Border(linestyle.Light), container.BorderTitle("Others"))),
-			),
-			grid.RowHeightPerc(15, grid.Widget(w.messageText, container.Border(linestyle.Light), container.BorderTitle("Message"))),
-		),
+		grid.ColWidthPerc(40, grid.Widget(w.othersText, container.Border(linestyle.Light), container.BorderTitle("Others"))),
 	)
 	raw3 := grid.RowHeightPerc(4,
-		grid.ColWidthPerc(50, grid.Widget(w.progressGauge, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
-		grid.ColWidthPerc(50, grid.Widget(w.navi, container.Border(linestyle.Light))),
+		grid.ColWidthPerc(60, grid.Widget(w.progressGauge, container.Border(linestyle.Light), container.BorderTitle("Progress"))),
+		grid.ColWidthPerc(40, grid.Widget(w.navi, container.Border(linestyle.Light))),
 	)
 
 	builder := grid.New()

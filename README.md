@@ -55,24 +55,27 @@ docker run --rm -it nakabonne/ali ali
 ## Usage
 ### Quickstart
 
+```bash
+ali http://host.xz
 ```
-$ ali
-```
-
-Click on the target URL input field, give the URL and press Enter. Then the attack will be launched with default options.
+Replace `http://host.xz` with the target you want to issue the requests to.
+Press Enter when the UI appears, then the attack will be launched with default options.
 
 ### Options
 
-**Note** that UI field-based configuration is planned to eliminated and will only support configuration through CLI flags.
+```bash
+ali -h
+```
 
 | Name | Description | Default |
 |------|-------------|---------|
-| Rate Limit | The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
-| Duration | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
-| Timeout | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
-| Method | An HTTP request method for each request. | GET |
-| Header | A request header to be sent. | empty |
-| Body | The file whose content will be set as the http request body. | empty |
+| `--rate` | The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
+| `--duration` | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
+| `--timeout` | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
+| `--method` | An HTTP request method for each request. | GET |
+| `--header` | A request header to be sent. | |
+| `--body` | A request body to be sent. | |
+| `--body-file` | The path to file whose content will be set as the http request body. | |
 
 ## Features
 
@@ -99,7 +102,6 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intui
 
 
 ## Roadmap
-- Better UI
-  - Eliminate field-based configuration and only support configuration through cli flags
-- Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
-- Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
+- [x] Eliminate field-based configuration and only support configuration through cli flags
+- [ ] Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
+- [ ] Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
