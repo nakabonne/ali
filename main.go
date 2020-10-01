@@ -97,16 +97,19 @@ func (c *cli) run(args []string) int {
 	target := args[0]
 	if _, err := url.ParseRequestURI(target); err != nil {
 		fmt.Fprintf(c.stderr, "bad target URL: %v\n", err)
+		usage()
 		return 1
 	}
 	opts, err := c.makeOptions()
 	if err != nil {
-		fmt.Fprintf(c.stderr, err.Error())
+		fmt.Fprintln(c.stderr, err.Error())
+		usage()
 		return 1
 	}
 	setDebug(nil, c.debug)
 	if err := gui.Run(target, opts); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
+		usage()
 		return 1
 	}
 
