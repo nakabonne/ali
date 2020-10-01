@@ -90,15 +90,15 @@ Out:
   Total: %v
   Mean: %v`
 
-	othersTextFormat = `Earliest: %v
-Latest: %v
-End: %v
-Duration: %v
+	othersTextFormat = `Duration: %v
 Wait: %v
 Requests: %d
 Rate: %f
 Throughput: %f
-Success: %f`
+Success: %f
+Earliest: %v
+Latest: %v
+End: %v`
 )
 
 func (d *drawer) redrawMetrics(ctx context.Context) {
@@ -132,20 +132,20 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				), text.WriteReplace())
 
 			d.widgets.othersText.Write(fmt.Sprintf(othersTextFormat,
-				metrics.Earliest,
-				metrics.Latest,
-				metrics.End,
 				metrics.Duration,
 				metrics.Wait,
 				metrics.Requests,
 				metrics.Rate,
 				metrics.Throughput,
 				metrics.Success,
+				metrics.Earliest,
+				metrics.Latest,
+				metrics.End,
 			), text.WriteReplace())
 
 			codesText := ""
 			for code, n := range metrics.StatusCodes {
-				codesText += fmt.Sprintf(`%s: %d
+				codesText += fmt.Sprintf(`%q: %d
 `, code, n)
 			}
 			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
