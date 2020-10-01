@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/mum4k/termdash/cell"
@@ -55,16 +56,12 @@ type widgets struct {
 	navi          Text
 }
 
-func newWidgets() (*widgets, error) {
+func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 	latencyChart, err := newLineChart()
 	if err != nil {
 		return nil, err
 	}
 
-	paramsText, err := newText("")
-	if err != nil {
-		return nil, err
-	}
 	messageText, err := newText("Give the target URL and press Enter")
 	if err != nil {
 		return nil, err
@@ -78,6 +75,11 @@ func newWidgets() (*widgets, error) {
 		return nil, err
 	}
 	othersText, err := newText("")
+	if err != nil {
+		return nil, err
+	}
+
+	paramsText, err := newText(makeParamsText(targetURL, opts))
 	if err != nil {
 		return nil, err
 	}
@@ -176,4 +178,15 @@ func newGauge() (Gauge, error) {
 		gauge.Border(linestyle.None),
 		//gauge.BorderTitle("Progress"),
 	)
+}
+
+// TODO: Make header easy to see.
+func makeParamsText(targetURL string, opts *attacker.Options) string {
+	return fmt.Sprintf(`Target: %s
+Rate: %d
+Duration: %v
+Method: %s
+Header: %v
+Body: %s
+`, targetURL, opts.Rate, opts.Duration, opts.Method, opts.Header, opts.Body)
 }

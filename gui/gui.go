@@ -41,7 +41,7 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 		return fmt.Errorf("failed to generate container: %w", err)
 	}
 
-	w, err := newWidgets()
+	w, err := newWidgets(targetURL, opts)
 	if err != nil {
 		return fmt.Errorf("failed to generate widgets: %w", err)
 	}
