@@ -45,6 +45,7 @@ type widgets struct {
 
 	latencyChart LineChart
 
+	paramsText    Text
 	messageText   Text
 	latenciesText Text
 	bytesText     Text
@@ -56,6 +57,11 @@ type widgets struct {
 
 func newWidgets() (*widgets, error) {
 	latencyChart, err := newLineChart()
+	if err != nil {
+		return nil, err
+	}
+
+	paramsText, err := newText("")
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +81,7 @@ func newWidgets() (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	navi, err := newText("Ctrl-C: quit, Enter: attack")
 	if err != nil {
 		return nil, err
@@ -120,6 +127,7 @@ func newWidgets() (*widgets, error) {
 		headerInput:    headerInput,
 		timeoutInput:   timeoutInput,
 		latencyChart:   latencyChart,
+		paramsText:     paramsText,
 		messageText:    messageText,
 		latenciesText:  latenciesText,
 		bytesText:      bytesText,
