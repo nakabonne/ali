@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,12 +29,13 @@ var (
 
 Flags:`)
 		flagSet.PrintDefaults()
-		fmt.Println("")
-		fmt.Fprintln(os.Stderr, `Examples:
-  ali --duration=10m --rate=100 http://exmple.com`)
-		fmt.Println("")
-		fmt.Fprintln(os.Stderr, `Author:
-  Ryo Nakao <ryo@nakao.dev>`)
+		fmt.Fprintln(os.Stderr, `
+Examples:
+  ali --duration=10m --rate=100 http://host.xz
+
+Author:
+  Ryo Nakao <ryo@nakao.dev>
+`)
 	}
 	// Automatically populated by goreleaser during build
 	version = "unversioned"
@@ -92,15 +94,19 @@ func (c *cli) run(args []string) int {
 		usage()
 		return 1
 	}
-	setDebug(nil, c.debug)
-
+	target := args[0]
+	if _, err := url.ParseRequestURI(target); err != nil {
+		fmt.Fprintf(c.stderr, "bad target URL: %v\n", err)
+		return 1
+	}
 	opts, err := c.makeOptions()
 	if err != nil {
 		fmt.Fprintf(c.stderr, err.Error())
 		return 1
 	}
-	if err := gui.Run(opts); err != nil {
-		fmt.Fprintf(c.stderr, "failed to start application: %s", err.Error())
+	setDebug(nil, c.debug)
+	if err := gui.Run(target, opts); err != nil {
+		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
 		return 1
 	}
 

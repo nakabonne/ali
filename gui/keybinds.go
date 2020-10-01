@@ -2,8 +2,6 @@ package gui
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/mum4k/termdash/keyboard"
@@ -12,25 +10,20 @@ import (
 	"github.com/nakabonne/ali/attacker"
 )
 
-func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer, opts attacker.Options) func(*terminalapi.Keyboard) {
+func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer, targetURL string, opts attacker.Options) func(*terminalapi.Keyboard) {
 	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
 		case keyboard.KeyCtrlC: // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
-			attack(ctx, dr, opts)
+			attack(ctx, dr, targetURL, opts)
 		}
 	}
 }
 
-func attack(ctx context.Context, d *drawer, opts attacker.Options) {
+func attack(ctx context.Context, d *drawer, target string, opts attacker.Options) {
 	if d.chartDrawing {
 		d.messageCh <- "Wait until the attack is over"
-		return
-	}
-	target := d.widgets.urlInput.Read()
-	if _, err := url.ParseRequestURI(target); err != nil {
-		d.messageCh <- fmt.Sprintf("Bad URL: %v", err)
 		return
 	}
 	requestNum := opts.Rate * int(opts.Duration/time.Second)

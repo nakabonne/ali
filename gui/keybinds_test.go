@@ -33,7 +33,7 @@ func TestKeybinds(t *testing.T) {
 					}
 				}
 			}(ctx)
-			f := keybinds(ctx, cancel, nil, attacker.Options{})
+			f := keybinds(ctx, cancel, nil, "", attacker.Options{})
 			f(&terminalapi.Keyboard{Key: tt.key})
 			// If ctx wasn't expired, goleak will find it.
 		})
@@ -56,14 +56,6 @@ func TestAttack(t *testing.T) {
 		{
 			name:         "chart is drawing",
 			chartDrawing: true,
-		},
-		{
-			name: "bad url given",
-			urlInput: func() TextInput {
-				m := NewMockTextInput(ctrl)
-				m.EXPECT().Read().Return("bad-url")
-				return m
-			}(),
 		},
 	}
 	for _, tt := range tests {
@@ -88,7 +80,7 @@ func TestAttack(t *testing.T) {
 				messageCh:    make(chan string, 100),
 				chartDrawing: tt.chartDrawing,
 			}
-			attack(ctx, d, attacker.Options{})
+			attack(ctx, d, "", attacker.Options{})
 		})
 	}
 }
