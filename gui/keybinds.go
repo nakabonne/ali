@@ -32,7 +32,7 @@ func attack(ctx context.Context, d *drawer, target string, opts attacker.Options
 	go d.redrawChart(ctx, requestNum)
 	go d.redrawGauge(ctx, requestNum)
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
-		metrics := attacker.Attack(ctx, t, d.chartCh, o)
+		metrics := attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o)
 		d.metricsCh <- metrics
 		d.chartCh <- &attacker.Result{End: true}
 		d.messageCh <- "Attack completed"

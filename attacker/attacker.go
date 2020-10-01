@@ -49,7 +49,7 @@ type Result struct {
 // Attack keeps the request running for the specified period of time.
 // Results are sent to the given channel as soon as they arrive.
 // When the attack is over, it gives back final statistics.
-func Attack(ctx context.Context, target string, resCh chan *Result, opts Options) *Metrics {
+func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh chan *Metrics, opts Options) *Metrics {
 	if target == "" {
 		return nil
 	}
@@ -91,9 +91,11 @@ func Attack(ctx context.Context, target string, resCh chan *Result, opts Options
 		default:
 			resCh <- &Result{Latency: res.Latency}
 			metrics.Add(res)
+			metricsCh <- newMetrics(&metrics)
 		}
 	}
 	metrics.Close()
 
+	// TODO: No need to give back metrics anymore.
 	return newMetrics(&metrics)
 }

@@ -17,6 +17,7 @@ type drawer struct {
 	chartCh   chan *attacker.Result
 	gaugeCh   chan bool
 	metricsCh chan *attacker.Metrics
+	// TODO: Remove
 	messageCh chan string
 
 	// aims to avoid to perform multiple `redrawChart`.
