@@ -73,7 +73,7 @@ ali -h
 | `--duration` | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
 | `--timeout` | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
 | `--method` | An HTTP request method for each request. | GET |
-| `--header` | A request header to be sent. | |
+| `--header` | A request header to be sent. Can be used multiple times to send multiple headers | |
 | `--body` | A request body to be sent. | |
 | `--body-file` | The path to file whose content will be set as the http request body. | |
 

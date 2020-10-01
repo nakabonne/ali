@@ -49,7 +49,7 @@ type cli struct {
 	duration time.Duration
 	timeout  time.Duration
 	method   string
-	header   string
+	headers  []string
 	body     string
 	bodyFile string
 
@@ -68,7 +68,7 @@ func main() {
 	flagSet.DurationVarP(&c.duration, "duration", "d", time.Second*10, "the amount of time to issue requests to the targets")
 	flagSet.DurationVarP(&c.timeout, "timeout", "t", time.Second*30, "the timeout for each request")
 	flagSet.StringVarP(&c.method, "method", "m", "GET", "an HTTP request method for each request")
-	flagSet.StringVarP(&c.header, "header", "H", "", "a request header to be sent")
+	flagSet.StringSliceVarP(&c.headers, "header", "H", []string{}, "a request header to be sent. can be used multiple times to send multiple headers")
 	flagSet.StringVarP(&c.body, "body", "b", "", "a request body to be sent")
 	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "the file whose content will be set as the http request body")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "print the current version")
@@ -123,14 +123,14 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	header := make(http.Header)
-	if c.header != "" {
-		parts := strings.SplitN(c.header, ":", 2)
+	for _, hdr := range c.headers {
+		parts := strings.SplitN(hdr, ":", 2)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("given header %q has a wrong format", c.header)
+			return nil, fmt.Errorf("given header %q has a wrong format", hdr)
 		}
 		key, val := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
 		if key == "" || val == "" {
-			return nil, fmt.Errorf("given header %q has a wrong format", c.header)
+			return nil, fmt.Errorf("given header %q has a wrong format", hdr)
 		}
 		// NOTE: Add key/value directly to the http.Header (map[string][]string).
 		// http.Header.Add() canonicalizes keys but the vegeta API is used to test systems that require case-sensitive headers.
