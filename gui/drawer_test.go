@@ -126,11 +126,13 @@ func TestRedrawMetrics(t *testing.T) {
 	defer ctrl.Finish()
 
 	tests := []struct {
-		name          string
-		metrics       *attacker.Metrics
-		latenciesText Text
-		bytesText     Text
-		othersText    Text
+		name            string
+		metrics         *attacker.Metrics
+		latenciesText   Text
+		bytesText       Text
+		othersText      Text
+		statusCodesText Text
+		errorsText      Text
 	}{
 		{
 			name: "nil metrics given",
@@ -143,6 +145,14 @@ func TestRedrawMetrics(t *testing.T) {
 				return t
 			}(),
 			othersText: func() Text {
+				t := NewMockText(ctrl)
+				return t
+			}(),
+			statusCodesText: func() Text {
+				t := NewMockText(ctrl)
+				return t
+			}(),
+			errorsText: func() Text {
 				t := NewMockText(ctrl)
 				return t
 			}(),
@@ -192,6 +202,7 @@ Max: 1ns
 Min: 1ns`, gomock.Any())
 				return t
 			}(),
+
 			bytesText: func() Text {
 				t := NewMockText(ctrl)
 				t.EXPECT().Write(`In:
@@ -202,6 +213,21 @@ Out:
   Mean: 1`, gomock.Any())
 				return t
 			}(),
+
+			statusCodesText: func() Text {
+				t := NewMockText(ctrl)
+				t.EXPECT().Write(`200: 2
+`, gomock.Any())
+				return t
+			}(),
+
+			errorsText: func() Text {
+				t := NewMockText(ctrl)
+				t.EXPECT().Write(`0: error1
+`, gomock.Any())
+				return t
+			}(),
+
 			othersText: func() Text {
 				t := NewMockText(ctrl)
 				t.EXPECT().Write(`Earliest: 2009-11-10 23:00:00 +0000 UTC
@@ -212,11 +238,7 @@ Wait: 1ns
 Requests: 1
 Rate: 1.000000
 Throughput: 1.000000
-Success: 1.000000
-StatusCodes:
-  200: 2
-Errors:
-  0: error1`, gomock.Any())
+Success: 1.000000`, gomock.Any())
 
 				return t
 			}(),
@@ -228,9 +250,11 @@ Errors:
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			d := &drawer{
 				widgets: &widgets{
-					latenciesText: tt.latenciesText,
-					bytesText:     tt.bytesText,
-					othersText:    tt.othersText,
+					latenciesText:   tt.latenciesText,
+					bytesText:       tt.bytesText,
+					othersText:      tt.othersText,
+					statusCodesText: tt.statusCodesText,
+					errorsText:      tt.errorsText,
 				},
 				metricsCh: make(chan *attacker.Metrics),
 			}

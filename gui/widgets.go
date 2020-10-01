@@ -31,11 +31,13 @@ type Gauge interface {
 type widgets struct {
 	latencyChart LineChart
 
-	paramsText    Text
-	messageText   Text
-	latenciesText Text
-	bytesText     Text
-	othersText    Text
+	paramsText      Text
+	messageText     Text
+	latenciesText   Text
+	bytesText       Text
+	statusCodesText Text
+	errorsText      Text
+	othersText      Text
 
 	progressGauge Gauge
 	navi          Text
@@ -59,6 +61,14 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
+	statusCodesText, err := newText("")
+	if err != nil {
+		return nil, err
+	}
+	errorsText, err := newText("")
+	if err != nil {
+		return nil, err
+	}
 	othersText, err := newText("")
 	if err != nil {
 		return nil, err
@@ -78,14 +88,16 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		return nil, err
 	}
 	return &widgets{
-		latencyChart:  latencyChart,
-		paramsText:    paramsText,
-		messageText:   messageText,
-		latenciesText: latenciesText,
-		bytesText:     bytesText,
-		othersText:    othersText,
-		progressGauge: progressGauge,
-		navi:          navi,
+		latencyChart:    latencyChart,
+		paramsText:      paramsText,
+		messageText:     messageText,
+		latenciesText:   latenciesText,
+		bytesText:       bytesText,
+		statusCodesText: statusCodesText,
+		errorsText:      errorsText,
+		othersText:      othersText,
+		progressGauge:   progressGauge,
+		navi:            navi,
 	}, nil
 }
 
@@ -118,13 +130,10 @@ func newGauge() (Gauge, error) {
 	)
 }
 
-// TODO: Make header easy to see.
 func makeParamsText(targetURL string, opts *attacker.Options) string {
 	return fmt.Sprintf(`Target: %s
 Rate: %d
 Duration: %v
 Method: %s
-Header: %v
-Body: %s
-`, targetURL, opts.Rate, opts.Duration, opts.Method, opts.Header, opts.Body)
+`, targetURL, opts.Rate, opts.Duration, opts.Method)
 }

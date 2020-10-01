@@ -71,10 +71,14 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 func gridLayout(w *widgets) ([]container.Option, error) {
 	raw1 := grid.RowHeightPerc(65, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
 	raw2 := grid.RowHeightPerc(30,
-		grid.ColWidthPerc(15, grid.Widget(w.paramsText, container.Border(linestyle.Light), container.BorderTitle("Parameters"))),
+		grid.ColWidthPerc(10, grid.Widget(w.paramsText, container.Border(linestyle.Light), container.BorderTitle("Parameters"))),
 		grid.ColWidthPerc(15, grid.Widget(w.latenciesText, container.Border(linestyle.Light), container.BorderTitle("Latencies"))),
 		grid.ColWidthPerc(15, grid.Widget(w.bytesText, container.Border(linestyle.Light), container.BorderTitle("Bytes"))),
-		grid.ColWidthPerc(50, grid.Widget(w.othersText, container.Border(linestyle.Light), container.BorderTitle("Others"))),
+		grid.ColWidthPerc(15,
+			grid.RowHeightPerc(50, grid.Widget(w.statusCodesText, container.Border(linestyle.Light), container.BorderTitle("Status Codes"))),
+			grid.RowHeightPerc(50, grid.Widget(w.errorsText, container.Border(linestyle.Light), container.BorderTitle("Errors"))),
+		),
+		grid.ColWidthPerc(45, grid.Widget(w.othersText, container.Border(linestyle.Light), container.BorderTitle("Others"))),
 	)
 	raw3 := grid.RowHeightPerc(4,
 		grid.ColWidthPerc(50, grid.Widget(w.progressGauge, container.Border(linestyle.Light), container.BorderTitle("Progress"))),

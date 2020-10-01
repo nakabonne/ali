@@ -131,7 +131,7 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 					metrics.BytesOut.Mean,
 				), text.WriteReplace())
 
-			othersText := fmt.Sprintf(othersTextFormat,
+			d.widgets.othersText.Write(fmt.Sprintf(othersTextFormat,
 				metrics.Earliest,
 				metrics.Latest,
 				metrics.End,
@@ -141,25 +141,21 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				metrics.Rate,
 				metrics.Throughput,
 				metrics.Success,
-			)
+			), text.WriteReplace())
 
-			if len(metrics.StatusCodes) > 0 {
-				othersText += `
-StatusCodes:`
-			}
+			codesText := ""
 			for code, n := range metrics.StatusCodes {
-				othersText += fmt.Sprintf(`
-  %s: %d`, code, n)
+				codesText += fmt.Sprintf(`%s: %d
+`, code, n)
 			}
-			if len(metrics.Errors) > 0 {
-				othersText += `
-Errors:`
-			}
+			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
+
+			errorsText := ""
 			for i, e := range metrics.Errors {
-				othersText += fmt.Sprintf(`
-  %d: %s`, i, e)
+				errorsText += fmt.Sprintf(`%d: %s
+`, i, e)
 			}
-			d.widgets.othersText.Write(othersText, text.WriteReplace())
+			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
 		}
 	}
 }
