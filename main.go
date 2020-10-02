@@ -52,6 +52,7 @@ type cli struct {
 	headers  []string
 	body     string
 	bodyFile string
+	maxBody  int64
 
 	debug   bool
 	version bool
@@ -71,6 +72,7 @@ func main() {
 	flagSet.StringSliceVarP(&c.headers, "header", "H", []string{}, "A request header to be sent. Can be used multiple times to send multiple headers.")
 	flagSet.StringVarP(&c.body, "body", "b", "", "A request body to be sent.")
 	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "The path to file whose content will be set as the http request body.")
+	flagSet.Int64VarP(&c.maxBody, "max-body", "M", 0, "maximum number of bytes to capture from response bodies")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
 	flagSet.Usage = usage
@@ -156,6 +158,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		Timeout:  c.timeout,
 		Method:   c.method,
 		Body:     body,
+		MaxBody:  c.maxBody,
 		Header:   header,
 	}, nil
 }
