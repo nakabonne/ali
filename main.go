@@ -64,15 +64,15 @@ func main() {
 		stdout: os.Stdout,
 		stderr: os.Stderr,
 	}
-	flagSet.IntVarP(&c.rate, "rate", "r", 50, "the request rate per second to issue against the targets")
-	flagSet.DurationVarP(&c.duration, "duration", "d", time.Second*10, "the amount of time to issue requests to the targets")
-	flagSet.DurationVarP(&c.timeout, "timeout", "t", time.Second*30, "the timeout for each request")
-	flagSet.StringVarP(&c.method, "method", "m", "GET", "an HTTP request method for each request")
-	flagSet.StringSliceVarP(&c.headers, "header", "H", []string{}, "a request header to be sent. can be used multiple times to send multiple headers")
-	flagSet.StringVarP(&c.body, "body", "b", "", "a request body to be sent")
-	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "the file whose content will be set as the http request body")
-	flagSet.BoolVarP(&c.version, "version", "v", false, "print the current version")
-	flagSet.BoolVar(&c.debug, "debug", false, "run in debug mode")
+	flagSet.IntVarP(&c.rate, "rate", "r", 50, "The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible.")
+	flagSet.DurationVarP(&c.duration, "duration", "d", time.Second*10, "The amount of time to issue requests to the targets. Give 0s for an infinite attack.")
+	flagSet.DurationVarP(&c.timeout, "timeout", "t", time.Second*30, "The timeout for each request. 0s means to disable timeouts.")
+	flagSet.StringVarP(&c.method, "method", "m", "GET", "An HTTP request method for each request.")
+	flagSet.StringSliceVarP(&c.headers, "header", "H", []string{}, "A request header to be sent. Can be used multiple times to send multiple headers.")
+	flagSet.StringVarP(&c.body, "body", "b", "", "A request body to be sent.")
+	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "The path to file whose content will be set as the http request body.")
+	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
+	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
 	flagSet.Usage = usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {

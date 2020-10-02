@@ -65,17 +65,22 @@ Press Enter when the UI appears, then the attack will be launched with default o
 
 ```bash
 ali -h
+Usage:
+  ali [flags] <target URL>
+
+Flags:
+  -b, --body string         A request body to be sent.
+  -B, --body-file string    The path to file whose content will be set as the http request body.
+      --debug               Run in debug mode.
+  -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
+  -H, --header strings      A request header to be sent. Can be used multiple times to send multiple headers.
+  -m, --method string       An HTTP request method for each request. (default "GET")
+  -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
+  -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
+  -v, --version             Print the current version.
 ```
 
-| Name | Description | Default |
-|------|-------------|---------|
-| `--rate` | The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. | 50 |
-| `--duration` | The amount of time to issue requests to the targets. Give `0s` for an infinite attack. Press `Ctrl-C` to stop. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 10s |
-| `--timeout` | The timeout for each request. `0s` means to disable timeouts. Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". | 30s |
-| `--method` | An HTTP request method for each request. | GET |
-| `--header` | A request header to be sent. Can be used multiple times to send multiple headers | |
-| `--body` | A request body to be sent. | |
-| `--body-file` | The path to file whose content will be set as the http request body. | |
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 
 ## Features
 
