@@ -88,6 +88,8 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		select {
 		case <-ctx.Done():
 			opts.Attacker.Stop()
+			// metricsCh is already closed (as context is done) so we shouldn't send any metric
+			return
 		default:
 			resCh <- &Result{Latency: res.Latency}
 			metrics.Add(res)

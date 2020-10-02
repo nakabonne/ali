@@ -103,6 +103,7 @@ End: %v`
 )
 
 func (d *drawer) redrawMetrics(ctx context.Context) {
+	defer close(d.metricsCh)
 	for {
 		select {
 		case <-ctx.Done():

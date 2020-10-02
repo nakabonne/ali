@@ -261,7 +261,6 @@ End: 2009-11-10 23:00:00 +0000 UTC`, gomock.Any())
 			go d.redrawMetrics(ctx)
 			d.metricsCh <- tt.metrics
 			cancel()
-			close(d.metricsCh) // as it's not controlled by redrawMetrics anymore
 			<-d.metricsCh
 		})
 	}
