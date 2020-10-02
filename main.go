@@ -34,8 +34,7 @@ Examples:
   ali --duration=10m --rate=100 http://host.xz
 
 Author:
-  Ryo Nakao <ryo@nakao.dev>
-`)
+  Ryo Nakao <ryo@nakao.dev>`)
 	}
 	// Automatically populated by goreleaser during build
 	version = "unversioned"
