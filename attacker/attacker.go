@@ -95,4 +95,5 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		}
 	}
 	metrics.Close()
+	metricsCh <- newMetrics(&metrics)
 }
