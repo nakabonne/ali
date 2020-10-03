@@ -118,9 +118,7 @@ func newText(s string) (Text, error) {
 
 func newGauge() (Gauge, error) {
 	return gauge.New(
-		//gauge.Height(1),
 		gauge.Border(linestyle.None),
-		//gauge.BorderTitle("Progress"),
 	)
 }
 
