@@ -23,7 +23,6 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer, target
 
 func attack(ctx context.Context, d *drawer, target string, opts attacker.Options) {
 	if d.chartDrawing {
-		d.messageCh <- "Wait until the attack is over"
 		return
 	}
 	requestNum := opts.Rate * int(opts.Duration/time.Second)
@@ -34,6 +33,5 @@ func attack(ctx context.Context, d *drawer, target string, opts attacker.Options
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
 		attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o) // this blocks until attack finishes
 		d.chartCh <- &attacker.Result{End: true}
-		d.messageCh <- "Attack completed"
 	}(ctx, d, target, opts)
 }

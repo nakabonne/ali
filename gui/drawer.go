@@ -17,8 +17,6 @@ type drawer struct {
 	chartCh   chan *attacker.Result
 	gaugeCh   chan bool
 	metricsCh chan *attacker.Metrics
-	// TODO: Remove
-	messageCh chan string
 
 	// aims to avoid to perform multiple `redrawChart`.
 	chartDrawing bool
@@ -157,18 +155,6 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 `, i, e)
 			}
 			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
-		}
-	}
-}
-
-func (d *drawer) redrawMessage(ctx context.Context) {
-	defer close(d.messageCh)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case m := <-d.messageCh:
-			d.widgets.messageText.Write(m, text.WriteReplace())
 		}
 	}
 }

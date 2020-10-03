@@ -43,7 +43,6 @@ Author:
 )
 
 type cli struct {
-	target   string
 	rate     int
 	duration time.Duration
 	timeout  time.Duration
