@@ -23,19 +23,6 @@ import (
 var (
 	flagSet = flag.NewFlagSet("ali", flag.ContinueOnError)
 
-	usage = func() {
-		fmt.Fprintln(os.Stderr, `Usage:
-  ali [flags] <target URL>
-
-Flags:`)
-		flagSet.PrintDefaults()
-		fmt.Fprintln(os.Stderr, `
-Examples:
-  ali --duration=10m --rate=100 http://host.xz
-
-Author:
-  Ryo Nakao <ryo@nakao.dev>`)
-	}
 	// Automatically populated by goreleaser during build
 	version = "unversioned"
 	commit  = "?"
@@ -71,7 +58,7 @@ func main() {
 	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "The path to file whose content will be set as the http request body.")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
-	flagSet.Usage = usage
+	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
 			fmt.Fprintln(c.stderr, err)
@@ -89,29 +76,44 @@ func (c *cli) run(args []string) int {
 	}
 	if len(args) == 0 {
 		fmt.Fprintln(c.stderr, "no target given")
-		usage()
+		c.usage()
 		return 1
 	}
 	target := args[0]
 	if _, err := url.ParseRequestURI(target); err != nil {
 		fmt.Fprintf(c.stderr, "bad target URL: %v\n", err)
-		usage()
+		c.usage()
 		return 1
 	}
 	opts, err := c.makeOptions()
 	if err != nil {
 		fmt.Fprintln(c.stderr, err.Error())
-		usage()
+		c.usage()
 		return 1
 	}
 	setDebug(nil, c.debug)
 	if err := gui.Run(target, opts); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
-		usage()
+		c.usage()
 		return 1
 	}
 
 	return 0
+}
+
+func (c *cli) usage() {
+	format := `Usage:
+  ali [flags] <target URL>
+
+Flags:
+%s
+Examples:
+  ali --duration=10m --rate=100 http://host.xz
+
+Author:
+  Ryo Nakao <ryo@nakao.dev>
+`
+	fmt.Fprintf(c.stderr, format, flagSet.FlagUsages())
 }
 
 // makeOptions gives back an options for attacker, with the CLI input.
