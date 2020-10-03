@@ -265,38 +265,3 @@ End: 2009-11-10 23:00:00 +0000 UTC`, gomock.Any())
 		})
 	}
 }
-
-func TestRedrawMessage(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	tests := []struct {
-		name    string
-		message string
-		text    Text
-	}{
-		{
-			name:    "write foo",
-			message: "foo",
-			text: func() Text {
-				g := NewMockText(ctrl)
-				g.EXPECT().Write("foo", gomock.Any())
-				return g
-			}(),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			d := &drawer{
-				widgets:   &widgets{messageText: tt.text},
-				messageCh: make(chan string),
-			}
-			go d.redrawMessage(ctx)
-			d.messageCh <- tt.message
-			cancel()
-			<-d.messageCh
-		})
-	}
-}

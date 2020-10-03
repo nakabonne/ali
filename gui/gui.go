@@ -58,10 +58,8 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 		chartCh:   make(chan *attacker.Result),
 		gaugeCh:   make(chan bool),
 		metricsCh: make(chan *attacker.Metrics),
-		messageCh: make(chan string),
 	}
 	go d.redrawMetrics(ctx)
-	go d.redrawMessage(ctx)
 
 	k := keybinds(ctx, cancel, d, targetURL, *opts)
 

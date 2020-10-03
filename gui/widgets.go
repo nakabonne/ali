@@ -32,7 +32,6 @@ type widgets struct {
 	latencyChart LineChart
 
 	paramsText      Text
-	messageText     Text
 	latenciesText   Text
 	bytesText       Text
 	statusCodesText Text
@@ -49,10 +48,6 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		return nil, err
 	}
 
-	messageText, err := newText("Give the target URL and press Enter")
-	if err != nil {
-		return nil, err
-	}
 	latenciesText, err := newText("")
 	if err != nil {
 		return nil, err
@@ -90,7 +85,6 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 	return &widgets{
 		latencyChart:    latencyChart,
 		paramsText:      paramsText,
-		messageText:     messageText,
 		latenciesText:   latenciesText,
 		bytesText:       bytesText,
 		statusCodesText: statusCodesText,

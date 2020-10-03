@@ -61,14 +61,12 @@ func TestAttack(t *testing.T) {
 			d := &drawer{
 				widgets: &widgets{
 					latencyChart:  nil,
-					messageText:   nil,
 					latenciesText: nil,
 					bytesText:     nil,
 					othersText:    nil,
 					progressGauge: nil,
 					navi:          nil,
 				},
-				messageCh:    make(chan string, 100),
 				chartDrawing: tt.chartDrawing,
 			}
 			attack(ctx, d, "", attacker.Options{})
