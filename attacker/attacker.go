@@ -35,6 +35,7 @@ type Options struct {
 	Workers    uint64
 	MaxWorkers uint64
 	MaxBody    int64
+	KeepAlive  bool
 
 	Attacker Attacker
 }
@@ -71,6 +72,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			vegeta.Workers(opts.Workers),
 			vegeta.MaxWorkers(opts.MaxWorkers),
 			vegeta.MaxBody(opts.MaxBody),
+			vegeta.KeepAlive(opts.KeepAlive),
 		)
 	}
 
