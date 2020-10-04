@@ -145,11 +145,11 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 
 	body := []byte(c.body)
 	if c.bodyFile != "" {
-		if b, err := ioutil.ReadFile(c.bodyFile); err != nil {
+		b, err := ioutil.ReadFile(c.bodyFile)
+		if err != nil {
 			return nil, fmt.Errorf("unable to open %q: %w", c.bodyFile, err)
-		} else {
-			body = b
 		}
+		body = b
 	}
 
 	return &attacker.Options{
