@@ -22,15 +22,15 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.3.1/ali_0.3.1_linux_amd64.deb
-apt install ./ali_0.3.1_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.3.2/ali_0.3.2_linux_amd64.deb
+apt install ./ali_0.3.2_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-curl -OL https://github.com/nakabonne/ali/releases/download/v0.3.1/ali_0.3.1_linux_amd64.rpm
-rpm -i ./ali_0.3.1_linux_amd64.rpm
+curl -OL https://github.com/nakabonne/ali/releases/download/v0.3.2/ali_0.3.2_linux_amd64.rpm
+rpm -i ./ali_0.3.2_linux_amd64.rpm
 ```
 
 **Via AUR**
@@ -74,6 +74,8 @@ Flags:
       --debug               Run in debug mode.
   -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
   -H, --header strings      A request header to be sent. Can be used multiple times to send multiple headers.
+  -k, --keepalive           Use persistent connections. (default true)
+  -M, --max-body int        Max bytes to capture from response bodies. Give -1 for no limit. (default -1)
   -m, --method string       An HTTP request method for each request. (default "GET")
   -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
   -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
