@@ -30,14 +30,16 @@ var (
 )
 
 type cli struct {
-	rate     int
-	duration time.Duration
-	timeout  time.Duration
-	method   string
-	headers  []string
-	body     string
-	bodyFile string
-	maxBody  int64
+	rate       int
+	duration   time.Duration
+	timeout    time.Duration
+	method     string
+	headers    []string
+	body       string
+	bodyFile   string
+	maxBody    int64
+	workers    uint64
+	maxWorkers uint64
 
 	debug     bool
 	version   bool
@@ -62,6 +64,8 @@ func main() {
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
 	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use persistent connections.")
+	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of workers to spawn.")
+	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -155,14 +159,16 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	return &attacker.Options{
-		Rate:      c.rate,
-		Duration:  c.duration,
-		Timeout:   c.timeout,
-		Method:    c.method,
-		Body:      body,
-		MaxBody:   c.maxBody,
-		Header:    header,
-		KeepAlive: c.keepAlive,
+		Rate:       c.rate,
+		Duration:   c.duration,
+		Timeout:    c.timeout,
+		Method:     c.method,
+		Body:       body,
+		MaxBody:    c.maxBody,
+		Header:     header,
+		KeepAlive:  c.keepAlive,
+		Workers:    c.workers,
+		MaxWorkers: c.maxWorkers,
 	}, nil
 }
 
