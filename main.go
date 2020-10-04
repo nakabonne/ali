@@ -39,10 +39,11 @@ type cli struct {
 	bodyFile string
 	maxBody  int64
 
-	debug   bool
-	version bool
-	stdout  io.Writer
-	stderr  io.Writer
+	debug     bool
+	version   bool
+	keepAlive bool
+	stdout    io.Writer
+	stderr    io.Writer
 }
 
 func main() {
@@ -60,6 +61,7 @@ func main() {
 	flagSet.Int64VarP(&c.maxBody, "max-body", "M", 0, "Maximum number of bytes to capture from response bodies")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
+	flagSet.BoolVarP(&c.keepAlive, "keepalive", "K", false, "Use persistent connections if keepalive is set to true. (default false)")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -153,13 +155,14 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	return &attacker.Options{
-		Rate:     c.rate,
-		Duration: c.duration,
-		Timeout:  c.timeout,
-		Method:   c.method,
-		Body:     body,
-		MaxBody:  c.maxBody,
-		Header:   header,
+		Rate:      c.rate,
+		Duration:  c.duration,
+		Timeout:   c.timeout,
+		Method:    c.method,
+		Body:      body,
+		MaxBody:   c.maxBody,
+		Header:    header,
+		KeepAlive: c.keepAlive,
 	}, nil
 }
 
