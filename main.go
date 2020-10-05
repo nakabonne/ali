@@ -49,32 +49,39 @@ type cli struct {
 }
 
 func main() {
-	c := &cli{
-		stdout: os.Stdout,
-		stderr: os.Stderr,
+	c, err := parseFlags(os.Stdout, os.Stderr)
+	if err != nil {
+		os.Exit(0)
 	}
-	flagSet.IntVarP(&c.rate, "rate", "r", 50, "The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible.")
-	flagSet.DurationVarP(&c.duration, "duration", "d", time.Second*10, "The amount of time to issue requests to the targets. Give 0s for an infinite attack.")
-	flagSet.DurationVarP(&c.timeout, "timeout", "t", time.Second*30, "The timeout for each request. 0s means to disable timeouts.")
-	flagSet.StringVarP(&c.method, "method", "m", "GET", "An HTTP request method for each request.")
+	os.Exit(c.run(flagSet.Args()))
+}
+
+func parseFlags(stdout, stderr io.Writer) (*cli, error) {
+	c := &cli{
+		stdout: stdout,
+		stderr: stderr,
+	}
+	flagSet.IntVarP(&c.rate, "rate", "r", attacker.DefaultRate, "The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible.")
+	flagSet.DurationVarP(&c.duration, "duration", "d", attacker.DefaultDuration, "The amount of time to issue requests to the targets. Give 0s for an infinite attack.")
+	flagSet.DurationVarP(&c.timeout, "timeout", "t", attacker.DefaultTimeout, "The timeout for each request. 0s means to disable timeouts.")
+	flagSet.StringVarP(&c.method, "method", "m", attacker.DefaultMethod, "An HTTP request method for each request.")
 	flagSet.StringSliceVarP(&c.headers, "header", "H", []string{}, "A request header to be sent. Can be used multiple times to send multiple headers.")
 	flagSet.StringVarP(&c.body, "body", "b", "", "A request body to be sent.")
 	flagSet.StringVarP(&c.bodyFile, "body-file", "B", "", "The path to file whose content will be set as the http request body.")
-	flagSet.Int64VarP(&c.maxBody, "max-body", "M", -1, "Max bytes to capture from response bodies. Give -1 for no limit.")
+	flagSet.Int64VarP(&c.maxBody, "max-body", "M", attacker.DefaultMaxBody, "Max bytes to capture from response bodies. Give -1 for no limit.")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
 	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use persistent connections.")
-	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of workers to spawn.")
+	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
 			fmt.Fprintln(c.stderr, err)
 		}
-		return
+		return nil, err
 	}
-
-	os.Exit(c.run(flagSet.Args()))
+	return c, nil
 }
 
 func (c *cli) run(args []string) int {

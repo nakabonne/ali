@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"math"
 	"net/http"
 	"testing"
-
-	"github.com/nakabonne/ali/attacker"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/nakabonne/ali/attacker"
 )
 
 func TestValidateMethod(t *testing.T) {
@@ -31,6 +33,40 @@ func TestValidateMethod(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := validateMethod(tt.method)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestParseFlags(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    *cli
+		wantErr bool
+	}{
+		{
+			name: "with default options",
+			want: &cli{
+				rate:       50,
+				duration:   time.Second * 10,
+				timeout:    time.Second * 30,
+				method:     "GET",
+				headers:    []string{},
+				maxBody:    -1,
+				keepAlive:  true,
+				workers:    10,
+				maxWorkers: math.MaxUint64,
+				stdout:     new(bytes.Buffer),
+				stderr:     new(bytes.Buffer),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := new(bytes.Buffer)
+			got, err := parseFlags(b, b)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantErr, err != nil)
 		})
 	}
 }
@@ -152,12 +188,43 @@ func TestMakeOptions(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "wrong body file given",
+			cli: &cli{
+				method:   "GET",
+				headers:  []string{"key:value"},
+				bodyFile: "wrong",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.cli.makeOptions()
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err != nil)
+		})
+	}
+}
+
+func TestSetDebug(t *testing.T) {
+	tests := []struct {
+		name  string
+		debug bool
+	}{
+		{
+			name:  "in non-debug use",
+			debug: false,
+		},
+		{
+			name:  "in debug use",
+			debug: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setDebug(nil, tt.debug)
 		})
 	}
 }
