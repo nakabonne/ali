@@ -7,11 +7,11 @@ A load testing tool aimed to perform real-time analysis, inspired by [vegeta](ht
 
 ![Screenshot](images/demo.gif)
 
-`ali` comes with a terminal-based UI where you can plot the metrics in real-time, so lets you perform real-time analysis on the terminal.
+`ali` comes with an embedded terminal-based UI where you can plot the metrics in real-time, so lets you perform real-time analysis on the terminal.
 
 ## Installation
 
-Binaries are available through the [releases page](https://github.com/nakabonne/ali/releases).
+Binary releases are available through [here](https://github.com/nakabonne/ali/releases).
 
 **Via Homebrew**
 
@@ -101,14 +101,11 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intui
 
 ![Screenshot](images/mouse-support.gif)
 
-
-## Built with
-- [mum4k/termdash](https://github.com/mum4k/termdash)
-  - [nsf/termbox-go](https://github.com/nsf/termbox-go)
-- [tsenart/vegeta](https://github.com/tsenart/vegeta)
-
-
 ## Roadmap
 - [x] Eliminate field-based configuration and only support configuration through cli flags
 - [ ] Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
 - [ ] Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
+
+## Acknowledgements
+This project would not have been possible without the effort of many individuals and projects but especially [tsenart/vegeta](https://github.com/tsenart/vegeta) for the inspiration and powerful API.
+Besides, `ali` is built with [mum4k/termdash](https://github.com/mum4k/termdash) (as well as [nsf/termbox-go](https://github.com/nsf/termbox-go)) for the rendering of all those fancy graphs on the terminal.
