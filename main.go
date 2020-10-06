@@ -71,7 +71,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.Int64VarP(&c.maxBody, "max-body", "M", attacker.DefaultMaxBody, "Max bytes to capture from response bodies. Give -1 for no limit.")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
-	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use persistent connections.")
+	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use HTTP persistent connection.")
 	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.Usage = c.usage
