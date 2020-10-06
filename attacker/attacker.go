@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	DefaultRate       = 50
-	DefaultDuration   = 10 * time.Second
-	DefaultTimeout    = 30 * time.Second
-	DefaultMethod     = http.MethodGet
-	DefaultWorkers    = 10
-	DefaultMaxWorkers = math.MaxUint64
-	DefaultMaxBody    = int64(-1)
+	DefaultRate        = 50
+	DefaultDuration    = 10 * time.Second
+	DefaultTimeout     = 30 * time.Second
+	DefaultMethod      = http.MethodGet
+	DefaultWorkers     = 10
+	DefaultMaxWorkers  = math.MaxUint64
+	DefaultMaxBody     = int64(-1)
+	DefaultConnections = 10000
 )
 
 type Attacker interface {
@@ -26,16 +27,17 @@ type Attacker interface {
 
 // Options provides optional settings to attack.
 type Options struct {
-	Rate       int
-	Duration   time.Duration
-	Timeout    time.Duration
-	Method     string
-	Body       []byte
-	Header     http.Header
-	Workers    uint64
-	MaxWorkers uint64
-	MaxBody    int64
-	KeepAlive  bool
+	Rate        int
+	Duration    time.Duration
+	Timeout     time.Duration
+	Method      string
+	Body        []byte
+	MaxBody     int64
+	Header      http.Header
+	Workers     uint64
+	MaxWorkers  uint64
+	KeepAlive   bool
+	Connections int
 
 	Attacker Attacker
 }
@@ -66,12 +68,16 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 	if opts.MaxBody == 0 {
 		opts.MaxBody = DefaultMaxBody
 	}
+	if opts.Connections == 0 {
+		opts.Connections = DefaultConnections
+	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
 			vegeta.Timeout(opts.Timeout),
 			vegeta.Workers(opts.Workers),
 			vegeta.MaxWorkers(opts.MaxWorkers),
 			vegeta.MaxBody(opts.MaxBody),
+			vegeta.Connections(opts.Connections),
 			vegeta.KeepAlive(opts.KeepAlive),
 		)
 	}

@@ -30,16 +30,17 @@ var (
 )
 
 type cli struct {
-	rate       int
-	duration   time.Duration
-	timeout    time.Duration
-	method     string
-	headers    []string
-	body       string
-	bodyFile   string
-	maxBody    int64
-	workers    uint64
-	maxWorkers uint64
+	rate        int
+	duration    time.Duration
+	timeout     time.Duration
+	method      string
+	headers     []string
+	body        string
+	bodyFile    string
+	maxBody     int64
+	workers     uint64
+	maxWorkers  uint64
+	connections int
 
 	debug     bool
 	version   bool
@@ -74,6 +75,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use HTTP persistent connection.")
 	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
+	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
