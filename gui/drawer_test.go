@@ -236,9 +236,9 @@ Requests: 1
 Rate: 1.000000
 Throughput: 1.000000
 Success: 1.000000
-Earliest: 2009-11-10 23:00:00 +0000 UTC
-Latest: 2009-11-10 23:00:00 +0000 UTC
-End: 2009-11-10 23:00:00 +0000 UTC`, gomock.Any())
+Earliest: 2009-11-10T23:00:00Z
+Latest: 2009-11-10T23:00:00Z
+End: 2009-11-10T23:00:00Z`, gomock.Any())
 
 				return t
 			}(),
