@@ -22,15 +22,15 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.3.2/ali_0.3.2_linux_amd64.deb
-apt install ./ali_0.3.2_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.3.3/ali_0.3.3_linux_amd64.deb
+apt install ./ali_0.3.3_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-curl -OL https://github.com/nakabonne/ali/releases/download/v0.3.2/ali_0.3.2_linux_amd64.rpm
-rpm -i ./ali_0.3.2_linux_amd64.rpm
+curl -OL https://github.com/nakabonne/ali/releases/download/v0.3.3/ali_0.3.3_linux_amd64.rpm
+rpm -i ./ali_0.3.3_linux_amd64.rpm
 ```
 
 **Via AUR**
@@ -71,15 +71,18 @@ Usage:
 Flags:
   -b, --body string         A request body to be sent.
   -B, --body-file string    The path to file whose content will be set as the http request body.
+  -c, --connections int     Amount of maximum open idle connections per target host (default 10000)
       --debug               Run in debug mode.
   -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
   -H, --header strings      A request header to be sent. Can be used multiple times to send multiple headers.
-  -k, --keepalive           Use persistent connections. (default true)
+  -k, --keepalive           Use HTTP persistent connection. (default true)
   -M, --max-body int        Max bytes to capture from response bodies. Give -1 for no limit. (default -1)
+  -W, --max-workers uint    Amount of maximum workers to spawn. (default 18446744073709551615)
   -m, --method string       An HTTP request method for each request. (default "GET")
   -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
   -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
   -v, --version             Print the current version.
+  -w, --workers uint        Amount of initial workers to spawn. (default 10)
 ```
 
 Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
@@ -107,5 +110,6 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash), it's intui
 - [ ] Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
 
 ## Acknowledgements
-This project would not have been possible without the effort of many individuals and projects but especially [tsenart/vegeta](https://github.com/tsenart/vegeta) for the inspiration and powerful API.
-Besides, `ali` is built with [mum4k/termdash](https://github.com/mum4k/termdash) (as well as [nsf/termbox-go](https://github.com/nsf/termbox-go)) for the rendering of all those fancy graphs on the terminal.
+This project would not have been possible without the effort of many individuals and projects but especially [vegeta](https://github.com/tsenart/vegeta) for the inspiration and powerful API.
+Besides, `ali` is built with [termdash](https://github.com/mum4k/termdash) (as well as [termbox-go](https://github.com/nsf/termbox-go)) for the rendering of all those fancy graphs on the terminal.
+They clearly stimulated an incentive to creation. Thank you for all of them.
