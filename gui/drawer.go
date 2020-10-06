@@ -137,9 +137,9 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				metrics.Rate,
 				metrics.Throughput,
 				metrics.Success,
-				metrics.Earliest,
-				metrics.Latest,
-				metrics.End,
+				metrics.Earliest.Format(time.RFC3339),
+				metrics.Latest.Format(time.RFC3339),
+				metrics.End.Format(time.RFC3339),
 			), text.WriteReplace())
 
 			codesText := ""
