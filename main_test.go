@@ -58,6 +58,7 @@ func TestParseFlags(t *testing.T) {
 				connections: 10000,
 				stdout:      new(bytes.Buffer),
 				stderr:      new(bytes.Buffer),
+				http2:       true,
 			},
 			wantErr: false,
 		},
@@ -198,6 +199,31 @@ func TestMakeOptions(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: true,
+		},
+		{
+			name: "http2 given as false",
+			cli: &cli{
+				method:   "GET",
+				headers:  []string{"key:value"},
+				body:     "",
+				bodyFile: "testdata/body-1.json",
+				http2:    false,
+			},
+			want: &attacker.Options{
+				Rate:     0,
+				Duration: 0,
+				Timeout:  0,
+				Method:   "GET",
+				Body:     []byte(`{"foo": 1}`),
+				Header: http.Header{
+					"key": []string{"value"},
+				},
+				Workers:    0,
+				MaxWorkers: 0,
+				MaxBody:    0,
+				HTTP2:      false,
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
