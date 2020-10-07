@@ -38,6 +38,7 @@ type Options struct {
 	MaxWorkers  uint64
 	KeepAlive   bool
 	Connections int
+	HTTP2       bool
 
 	Attacker Attacker
 }
@@ -79,7 +80,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			vegeta.MaxBody(opts.MaxBody),
 			vegeta.Connections(opts.Connections),
 			vegeta.KeepAlive(opts.KeepAlive),
-			vegeta.HTTP2(true),
+			vegeta.HTTP2(opts.HTTP2),
 		)
 	}
 

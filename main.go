@@ -41,6 +41,7 @@ type cli struct {
 	workers     uint64
 	maxWorkers  uint64
 	connections int
+	http2       bool
 
 	debug     bool
 	version   bool
@@ -76,6 +77,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
+	flagSet.BoolVar(&c.http2, "http2", true, "Issue HTTP/2 requests to servers which support it. (default true)")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -168,16 +170,18 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	return &attacker.Options{
-		Rate:       c.rate,
-		Duration:   c.duration,
-		Timeout:    c.timeout,
-		Method:     c.method,
-		Body:       body,
-		MaxBody:    c.maxBody,
-		Header:     header,
-		KeepAlive:  c.keepAlive,
-		Workers:    c.workers,
-		MaxWorkers: c.maxWorkers,
+		Rate:        c.rate,
+		Duration:    c.duration,
+		Timeout:     c.timeout,
+		Method:      c.method,
+		Body:        body,
+		MaxBody:     c.maxBody,
+		Header:      header,
+		KeepAlive:   c.keepAlive,
+		Workers:     c.workers,
+		MaxWorkers:  c.maxWorkers,
+		Connections: c.connections,
+		HTTP2:       c.http2,
 	}, nil
 }
 
