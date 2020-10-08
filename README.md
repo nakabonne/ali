@@ -75,7 +75,9 @@ Flags:
       --debug               Run in debug mode.
   -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
   -H, --header strings      A request header to be sent. Can be used multiple times to send multiple headers.
+      --http2               Issue HTTP/2 requests to servers which support it. (default true)
   -k, --keepalive           Use HTTP persistent connection. (default true)
+      --local-addr string   Local IP address. (default "0.0.0.0")
   -M, --max-body int        Max bytes to capture from response bodies. Give -1 for no limit. (default -1)
   -W, --max-workers uint    Amount of maximum workers to spawn. (default 18446744073709551615)
   -m, --method string       An HTTP request method for each request. (default "GET")
