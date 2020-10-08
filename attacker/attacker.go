@@ -21,6 +21,8 @@ const (
 	DefaultConnections = 10000
 )
 
+var DefaultLocalAddr = net.IPAddr{IP: net.IPv4zero}
+
 type Attacker interface {
 	Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result
 	Stop()
@@ -75,7 +77,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		opts.Connections = DefaultConnections
 	}
 	if opts.LocalAddr.IP == nil {
-		opts.LocalAddr = vegeta.DefaultLocalAddr
+		opts.LocalAddr = DefaultLocalAddr
 	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
