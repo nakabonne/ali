@@ -3,6 +3,7 @@ package attacker
 import (
 	"context"
 	"math"
+	"net"
 	"net/http"
 	"time"
 
@@ -39,6 +40,7 @@ type Options struct {
 	KeepAlive   bool
 	Connections int
 	HTTP2       bool
+	LocalAddr   net.IPAddr
 
 	Attacker Attacker
 }
@@ -72,6 +74,9 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 	if opts.Connections == 0 {
 		opts.Connections = DefaultConnections
 	}
+	if opts.LocalAddr.IP == nil {
+		opts.LocalAddr = vegeta.DefaultLocalAddr
+	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
 			vegeta.Timeout(opts.Timeout),
@@ -81,6 +86,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			vegeta.Connections(opts.Connections),
 			vegeta.KeepAlive(opts.KeepAlive),
 			vegeta.HTTP2(opts.HTTP2),
+			vegeta.LocalAddr(opts.LocalAddr),
 		)
 	}
 
