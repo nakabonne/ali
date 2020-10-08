@@ -261,7 +261,10 @@ End: 2009-11-10T23:00:00Z`, gomock.Any())
 			go d.redrawMetrics(ctx)
 			d.metricsCh <- tt.metrics
 			cancel()
-			<-d.metricsCh
+			// TODO: Stop waiting inappropriately.
+			// Currently waiting in a rough manner to ensure that the mock function
+			// is called in the `redrawMetrics`, but it is unstable and inefficient.
+			time.Sleep(2 * time.Second)
 		})
 	}
 }
