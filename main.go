@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,18 +31,19 @@ var (
 )
 
 type cli struct {
-	rate        int
-	duration    time.Duration
-	timeout     time.Duration
-	method      string
-	headers     []string
-	body        string
-	bodyFile    string
-	maxBody     int64
-	workers     uint64
-	maxWorkers  uint64
-	connections int
-	http2       bool
+	rate         int
+	duration     time.Duration
+	timeout      time.Duration
+	method       string
+	headers      []string
+	body         string
+	bodyFile     string
+	maxBody      int64
+	workers      uint64
+	maxWorkers   uint64
+	connections  int
+	http2        bool
+	localAddress string
 
 	debug     bool
 	version   bool
@@ -78,6 +80,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
 	flagSet.BoolVar(&c.http2, "http2", true, "Issue HTTP/2 requests to servers which support it. (default true)")
+	flagSet.StringVarP(&c.localAddress, "local-address", "L", "0.0.0.0", "Local IP address.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -169,6 +172,8 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		body = b
 	}
 
+	localAddr := net.IPAddr{IP: net.ParseIP(c.localAddress)}
+
 	return &attacker.Options{
 		Rate:        c.rate,
 		Duration:    c.duration,
@@ -182,6 +187,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		MaxWorkers:  c.maxWorkers,
 		Connections: c.connections,
 		HTTP2:       c.http2,
+		LocalAddr:   localAddr,
 	}, nil
 }
 
