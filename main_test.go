@@ -131,6 +131,15 @@ func TestMakeOptions(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "duration less than 0",
+			cli: &cli{
+				method:   "WRONG",
+				duration: -1,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name: "missing colon in given header",
 			cli: &cli{
 				method:   "GET",
