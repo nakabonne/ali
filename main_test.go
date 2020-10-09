@@ -133,8 +133,9 @@ func TestMakeOptions(t *testing.T) {
 		{
 			name: "missing colon in given header",
 			cli: &cli{
-				method:  "GET",
-				headers: []string{"keyvalue"},
+				method:   "GET",
+				duration: 1,
+				headers:  []string{"keyvalue"},
 			},
 			want:    nil,
 			wantErr: true,
@@ -142,8 +143,9 @@ func TestMakeOptions(t *testing.T) {
 		{
 			name: "missing key in given header",
 			cli: &cli{
-				method:  "GET",
-				headers: []string{":value"},
+				method:   "GET",
+				duration: 1,
+				headers:  []string{":value"},
 			},
 			want:    nil,
 			wantErr: true,
@@ -151,8 +153,9 @@ func TestMakeOptions(t *testing.T) {
 		{
 			name: "missing value in given header",
 			cli: &cli{
-				method:  "GET",
-				headers: []string{"key:"},
+				method:   "GET",
+				duration: 1,
+				headers:  []string{"key:"},
 			},
 			want:    nil,
 			wantErr: true,
@@ -161,6 +164,7 @@ func TestMakeOptions(t *testing.T) {
 			name: "both body and body file given",
 			cli: &cli{
 				method:   "GET",
+				duration: 1,
 				headers:  []string{"key:value"},
 				body:     "body",
 				bodyFile: "path/to",
@@ -172,13 +176,14 @@ func TestMakeOptions(t *testing.T) {
 			name: "body file given",
 			cli: &cli{
 				method:   "GET",
+				duration: 1,
 				headers:  []string{"key:value"},
 				body:     "",
 				bodyFile: "testdata/body-1.json",
 			},
 			want: &attacker.Options{
 				Rate:     0,
-				Duration: 0,
+				Duration: 1,
 				Timeout:  0,
 				Method:   "GET",
 				Body:     []byte(`{"foo": 1}`),
@@ -195,6 +200,7 @@ func TestMakeOptions(t *testing.T) {
 			name: "wrong body file given",
 			cli: &cli{
 				method:   "GET",
+				duration: 1,
 				headers:  []string{"key:value"},
 				bodyFile: "wrong",
 			},
@@ -205,6 +211,7 @@ func TestMakeOptions(t *testing.T) {
 			name: "http2 given as false",
 			cli: &cli{
 				method:   "GET",
+				duration: 1,
 				headers:  []string{"key:value"},
 				body:     "",
 				bodyFile: "testdata/body-1.json",
@@ -212,7 +219,7 @@ func TestMakeOptions(t *testing.T) {
 			},
 			want: &attacker.Options{
 				Rate:     0,
-				Duration: 0,
+				Duration: 1,
 				Timeout:  0,
 				Method:   "GET",
 				Body:     []byte(`{"foo": 1}`),

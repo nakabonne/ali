@@ -143,6 +143,9 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	if !validateMethod(c.method) {
 		return nil, fmt.Errorf("given method %q isn't an HTTP request method", c.method)
 	}
+	if c.duration <= 0 {
+		return nil, fmt.Errorf("duration must be greater than 0")
+	}
 
 	header := make(http.Header)
 	for _, hdr := range c.headers {
