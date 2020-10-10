@@ -42,14 +42,14 @@ type cli struct {
 	workers      uint64
 	maxWorkers   uint64
 	connections  int
-	http2        bool
+	noHTTP2      bool
 	localAddress string
+	noKeepAlive  bool
 
-	debug     bool
-	version   bool
-	keepAlive bool
-	stdout    io.Writer
-	stderr    io.Writer
+	debug   bool
+	version bool
+	stdout  io.Writer
+	stderr  io.Writer
 }
 
 func main() {
@@ -75,11 +75,11 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.Int64VarP(&c.maxBody, "max-body", "M", attacker.DefaultMaxBody, "Max bytes to capture from response bodies. Give -1 for no limit.")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
-	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use HTTP persistent connection.")
+	flagSet.BoolVarP(&c.noKeepAlive, "no-keepalive", "K", false, "Don't use HTTP persistent connection.")
 	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
-	flagSet.BoolVar(&c.http2, "http2", true, "Issue HTTP/2 requests to servers which support it.")
+	flagSet.BoolVar(&c.noHTTP2, "no-http2", false, "Don't issue HTTP/2 requests to servers which support it.")
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
@@ -163,7 +163,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	if c.body != "" && c.bodyFile != "" {
-		return nil, fmt.Errorf("only one of --body and --body-file can be specified")
+		return nil, fmt.Errorf(`only one of "--body" and "--body-file" can be specified`)
 	}
 
 	body := []byte(c.body)
@@ -185,11 +185,11 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		Body:        body,
 		MaxBody:     c.maxBody,
 		Header:      header,
-		KeepAlive:   c.keepAlive,
+		KeepAlive:   !c.noKeepAlive,
 		Workers:     c.workers,
 		MaxWorkers:  c.maxWorkers,
 		Connections: c.connections,
-		HTTP2:       c.http2,
+		HTTP2:       !c.noHTTP2,
 		LocalAddr:   localAddr,
 	}, nil
 }
