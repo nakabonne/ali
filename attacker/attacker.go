@@ -100,7 +100,11 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		Header: opts.Header,
 	})
 
-	var metrics vegeta.Metrics
+	metrics := &vegeta.Metrics{}
+
+	child, cancelChild := context.WithCancel(ctx)
+	defer cancelChild()
+	go sendMetrics(child, metrics, metricsCh)
 
 	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
 		select {
@@ -110,9 +114,23 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		default:
 			resCh <- &Result{Latency: res.Latency}
 			metrics.Add(res)
-			metricsCh <- newMetrics(&metrics)
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(&metrics)
+	metricsCh <- newMetrics(metrics)
+}
+
+func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metrics) {
+	// TODO: Make the interval changeable.
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			ch <- newMetrics(metrics)
+		}
+	}
 }
