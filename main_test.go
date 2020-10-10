@@ -133,7 +133,7 @@ func TestMakeOptions(t *testing.T) {
 		{
 			name: "duration less than 0",
 			cli: &cli{
-				method:   "WRONG",
+				method:   "GET",
 				duration: -1,
 			},
 			want:    nil,
@@ -180,6 +180,29 @@ func TestMakeOptions(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: true,
+		},
+		{
+			name: "body given",
+			cli: &cli{
+				method:   "GET",
+				duration: 1,
+				headers:  []string{"key:value"},
+				body:     `{"foo": 1}`,
+			},
+			want: &attacker.Options{
+				Rate:     0,
+				Duration: 1,
+				Timeout:  0,
+				Method:   "GET",
+				Body:     []byte(`{"foo": 1}`),
+				Header: http.Header{
+					"key": []string{"value"},
+				},
+				Workers:    0,
+				MaxWorkers: 0,
+				MaxBody:    0,
+			},
+			wantErr: false,
 		},
 		{
 			name: "body file given",
