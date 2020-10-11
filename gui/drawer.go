@@ -149,9 +149,9 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
 
 			errorsText := ""
-			for i, e := range metrics.Errors {
-				errorsText += fmt.Sprintf(`%d: %s
-`, i, e)
+			for _, e := range metrics.Errors {
+				errorsText += fmt.Sprintf(`- %s
+`, e)
 			}
 			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
 		}
