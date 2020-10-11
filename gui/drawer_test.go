@@ -223,7 +223,7 @@ Out:
 
 			errorsText: func() Text {
 				t := NewMockText(ctrl)
-				t.EXPECT().Write(`0: error1
+				t.EXPECT().Write(`- error1
 `, gomock.Any())
 				return t
 			}(),
