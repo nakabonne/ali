@@ -119,13 +119,12 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			return
 		default:
 			metrics.Add(res)
-			m := newMetrics(metrics)
 			resCh <- &Result{
 				Latency: res.Latency,
-				P50:     m.Latencies.P50,
-				P90:     m.Latencies.P90,
-				P95:     m.Latencies.P95,
-				P99:     m.Latencies.P99,
+				P50:     metrics.Latencies.Quantile(0.50),
+				P90:     metrics.Latencies.Quantile(0.90),
+				P95:     metrics.Latencies.Quantile(0.95),
+				P99:     metrics.Latencies.Quantile(0.99),
 			}
 		}
 	}
