@@ -37,10 +37,10 @@ func TestRedrawChart(t *testing.T) {
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{1.0}, gomock.Any())
-				l.EXPECT().Series("p90", []float64{1.0}, gomock.Any())
-				l.EXPECT().Series("p95", []float64{1.0}, gomock.Any())
-				l.EXPECT().Series("p99", []float64{1.0}, gomock.Any())
+				l.EXPECT().Series("p50", []float64{0.5}, gomock.Any())
+				l.EXPECT().Series("p90", []float64{0.9}, gomock.Any())
+				l.EXPECT().Series("p95", []float64{0.95}, gomock.Any())
+				l.EXPECT().Series("p99", []float64{0.99}, gomock.Any())
 				return l
 			}(),
 		},
@@ -62,10 +62,10 @@ func TestRedrawChart(t *testing.T) {
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{1.0, 1.0}, gomock.Any())
-				l.EXPECT().Series("p90", []float64{1.0, 1.7}, gomock.Any())
-				l.EXPECT().Series("p95", []float64{1.0, 1.8}, gomock.Any())
-				l.EXPECT().Series("p99", []float64{1.0, 2.0}, gomock.Any())
+				l.EXPECT().Series("p50", []float64{0.5, 1.0}, gomock.Any())
+				l.EXPECT().Series("p90", []float64{0.9, 1.8}, gomock.Any())
+				l.EXPECT().Series("p95", []float64{0.95, 1.9}, gomock.Any())
+				l.EXPECT().Series("p99", []float64{0.99, 1.98}, gomock.Any())
 				return l
 			}(),
 		},
