@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,22 +31,25 @@ var (
 )
 
 type cli struct {
-	rate       int
-	duration   time.Duration
-	timeout    time.Duration
-	method     string
-	headers    []string
-	body       string
-	bodyFile   string
-	maxBody    int64
-	workers    uint64
-	maxWorkers uint64
+	rate         int
+	duration     time.Duration
+	timeout      time.Duration
+	method       string
+	headers      []string
+	body         string
+	bodyFile     string
+	maxBody      int64
+	workers      uint64
+	maxWorkers   uint64
+	connections  int
+	noHTTP2      bool
+	localAddress string
+	noKeepAlive  bool
 
-	debug     bool
-	version   bool
-	keepAlive bool
-	stdout    io.Writer
-	stderr    io.Writer
+	debug   bool
+	version bool
+	stdout  io.Writer
+	stderr  io.Writer
 }
 
 func main() {
@@ -71,9 +75,12 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.Int64VarP(&c.maxBody, "max-body", "M", attacker.DefaultMaxBody, "Max bytes to capture from response bodies. Give -1 for no limit.")
 	flagSet.BoolVarP(&c.version, "version", "v", false, "Print the current version.")
 	flagSet.BoolVar(&c.debug, "debug", false, "Run in debug mode.")
-	flagSet.BoolVarP(&c.keepAlive, "keepalive", "k", true, "Use persistent connections.")
+	flagSet.BoolVarP(&c.noKeepAlive, "no-keepalive", "K", false, "Don't use HTTP persistent connection.")
 	flagSet.Uint64VarP(&c.workers, "workers", "w", attacker.DefaultWorkers, "Amount of initial workers to spawn.")
 	flagSet.Uint64VarP(&c.maxWorkers, "max-workers", "W", attacker.DefaultMaxWorkers, "Amount of maximum workers to spawn.")
+	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
+	flagSet.BoolVar(&c.noHTTP2, "no-http2", false, "Don't issue HTTP/2 requests to servers which support it.")
+	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -136,6 +143,9 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	if !validateMethod(c.method) {
 		return nil, fmt.Errorf("given method %q isn't an HTTP request method", c.method)
 	}
+	if c.duration <= 0 {
+		return nil, fmt.Errorf("duration must be greater than 0")
+	}
 
 	header := make(http.Header)
 	for _, hdr := range c.headers {
@@ -153,7 +163,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 	}
 
 	if c.body != "" && c.bodyFile != "" {
-		return nil, fmt.Errorf("only one of --body and --body-file can be specified")
+		return nil, fmt.Errorf(`only one of "--body" and "--body-file" can be specified`)
 	}
 
 	body := []byte(c.body)
@@ -165,17 +175,22 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		body = b
 	}
 
+	localAddr := net.IPAddr{IP: net.ParseIP(c.localAddress)}
+
 	return &attacker.Options{
-		Rate:       c.rate,
-		Duration:   c.duration,
-		Timeout:    c.timeout,
-		Method:     c.method,
-		Body:       body,
-		MaxBody:    c.maxBody,
-		Header:     header,
-		KeepAlive:  c.keepAlive,
-		Workers:    c.workers,
-		MaxWorkers: c.maxWorkers,
+		Rate:        c.rate,
+		Duration:    c.duration,
+		Timeout:     c.timeout,
+		Method:      c.method,
+		Body:        body,
+		MaxBody:     c.maxBody,
+		Header:      header,
+		KeepAlive:   !c.noKeepAlive,
+		Workers:     c.workers,
+		MaxWorkers:  c.maxWorkers,
+		Connections: c.connections,
+		HTTP2:       !c.noHTTP2,
+		LocalAddr:   localAddr,
 	}, nil
 }
 
