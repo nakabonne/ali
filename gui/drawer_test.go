@@ -223,7 +223,7 @@ Out:
 
 			errorsText: func() Text {
 				t := NewMockText(ctrl)
-				t.EXPECT().Write(`0: error1
+				t.EXPECT().Write(`- error1
 `, gomock.Any())
 				return t
 			}(),
@@ -236,9 +236,9 @@ Requests: 1
 Rate: 1.000000
 Throughput: 1.000000
 Success: 1.000000
-Earliest: 2009-11-10 23:00:00 +0000 UTC
-Latest: 2009-11-10 23:00:00 +0000 UTC
-End: 2009-11-10 23:00:00 +0000 UTC`, gomock.Any())
+Earliest: 2009-11-10T23:00:00Z
+Latest: 2009-11-10T23:00:00Z
+End: 2009-11-10T23:00:00Z`, gomock.Any())
 
 				return t
 			}(),
@@ -261,7 +261,10 @@ End: 2009-11-10 23:00:00 +0000 UTC`, gomock.Any())
 			go d.redrawMetrics(ctx)
 			d.metricsCh <- tt.metrics
 			cancel()
-			<-d.metricsCh
+			// TODO: Stop waiting inappropriately.
+			// Currently waiting in a rough manner to ensure that the mock function
+			// is called in the `redrawMetrics`, but it is unstable and inefficient.
+			time.Sleep(2 * time.Second)
 		})
 	}
 }

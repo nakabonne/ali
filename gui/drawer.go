@@ -101,7 +101,6 @@ End: %v`
 )
 
 func (d *drawer) redrawMetrics(ctx context.Context) {
-	defer close(d.metricsCh)
 	for {
 		select {
 		case <-ctx.Done():
@@ -137,9 +136,9 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				metrics.Rate,
 				metrics.Throughput,
 				metrics.Success,
-				metrics.Earliest,
-				metrics.Latest,
-				metrics.End,
+				metrics.Earliest.Format(time.RFC3339),
+				metrics.Latest.Format(time.RFC3339),
+				metrics.End.Format(time.RFC3339),
 			), text.WriteReplace())
 
 			codesText := ""
@@ -150,9 +149,9 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
 
 			errorsText := ""
-			for i, e := range metrics.Errors {
-				errorsText += fmt.Sprintf(`%d: %s
-`, i, e)
+			for _, e := range metrics.Errors {
+				errorsText += fmt.Sprintf(`- %s
+`, e)
 			}
 			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
 		}
