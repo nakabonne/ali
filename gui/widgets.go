@@ -29,7 +29,7 @@ type Gauge interface {
 }
 
 type chartLegend struct {
-	text  Text
+	text     Text
 	cellOpts []cell.Option
 }
 
@@ -104,6 +104,7 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	paramsText, err := newText(makeParamsText(targetURL, opts))
 	if err != nil {
 		return nil, err
