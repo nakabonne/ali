@@ -106,11 +106,11 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		Header: opts.Header,
 	})
 
-	var metrics vegeta.Metrics
+	metrics := &vegeta.Metrics{}
 
 	child, cancelChild := context.WithCancel(ctx)
 	defer cancelChild()
-	go sendMetrics(child, &metrics, metricsCh)
+	go sendMetrics(child, metrics, metricsCh)
 
 	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
 		select {
@@ -119,7 +119,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			return
 		default:
 			metrics.Add(res)
-			m := newMetrics(&metrics)
+			m := newMetrics(metrics)
 			resCh <- &Result{
 				Latency: res.Latency,
 				P50:     m.Latencies.P50,
@@ -130,7 +130,7 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(&metrics)
+	metricsCh <- newMetrics(metrics)
 }
 
 func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metrics) {
