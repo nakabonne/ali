@@ -69,7 +69,7 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 }
 
 // newChartWithLegends creates a chart with legends at the bottom.
-// TODO: use it for more charts than percetiles. Any chart that has multiple series should use this func.
+// TODO: use it for more charts than percentiles. Any chart that has multiple series would be able to use this func.
 func newChartWithLegends(lineChart LineChart, opts []container.Option, texts ...Text) ([]container.Option, error) {
 	textsInColumns := func() []grid.Element {
 		els := make([]grid.Element, 0, len(texts))
