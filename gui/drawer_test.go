@@ -28,6 +28,10 @@ func TestRedrawChart(t *testing.T) {
 			results: []*attacker.Result{
 				{
 					Latency: 1000000,
+					P50:     500000,
+					P90:     900000,
+					P95:     950000,
+					P99:     990000,
 				},
 			},
 			latencyChart: func() LineChart {
@@ -37,10 +41,12 @@ func TestRedrawChart(t *testing.T) {
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{0.5}, gomock.Any())
-				l.EXPECT().Series("p90", []float64{0.9}, gomock.Any())
-				l.EXPECT().Series("p95", []float64{0.95}, gomock.Any())
-				l.EXPECT().Series("p99", []float64{0.99}, gomock.Any())
+				gomock.InOrder(
+					l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
+				)
 				return l
 			}(),
 		},
@@ -49,9 +55,17 @@ func TestRedrawChart(t *testing.T) {
 			results: []*attacker.Result{
 				{
 					Latency: 1000000,
+					P50:     500000,
+					P90:     900000,
+					P95:     950000,
+					P99:     990000,
 				},
 				{
 					Latency: 2000000,
+					P50:     1000000,
+					P90:     1800000,
+					P95:     1900000,
+					P99:     1980000,
 				},
 			},
 			latencyChart: func() LineChart {
@@ -62,10 +76,16 @@ func TestRedrawChart(t *testing.T) {
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{0.5, 1.0}, gomock.Any())
-				l.EXPECT().Series("p90", []float64{0.9, 1.8}, gomock.Any())
-				l.EXPECT().Series("p95", []float64{0.95, 1.9}, gomock.Any())
-				l.EXPECT().Series("p99", []float64{0.99, 1.98}, gomock.Any())
+
+				gomock.InOrder(l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
+					l.EXPECT().Series("p50", []float64{0.5, 1.0}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9, 1.8}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95, 1.9}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99, 1.98}, gomock.Any()),
+				)
 				return l
 			}(),
 		},
