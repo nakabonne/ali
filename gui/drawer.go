@@ -14,6 +14,7 @@ import (
 
 type drawer struct {
 	widgets   *widgets
+	gridOpts  *gridOpts
 	chartCh   chan *attacker.Result
 	gaugeCh   chan bool
 	metricsCh chan *attacker.Metrics
@@ -27,6 +28,16 @@ type drawer struct {
 // TODO: In the future, multiple charts including bytes-in/out etc will be re-drawn.
 func (d *drawer) redrawChart(ctx context.Context, maxSize int) {
 	values := make([]float64, 0, maxSize)
+
+	valuesP50 := make([]float64, 0, maxSize)
+	valuesP90 := make([]float64, 0, maxSize)
+	valuesP95 := make([]float64, 0, maxSize)
+	valuesP99 := make([]float64, 0, maxSize)
+
+	appendValue := func(to []float64, val time.Duration) []float64 {
+		return append(to, float64(val/time.Millisecond))
+	}
+
 	d.chartDrawing = true
 L:
 	for {
@@ -42,12 +53,33 @@ L:
 				break L
 			}
 			d.gaugeCh <- false
-			values = append(values, float64(res.Latency/time.Millisecond))
+
+			values = appendValue(values, res.Latency)
 			d.widgets.latencyChart.Series("latency", values,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
 					0: "req",
 				}),
+			)
+
+			valuesP50 = appendValue(valuesP50, res.P50)
+			d.widgets.percentilesChart.Series("p50", valuesP50,
+				linechart.SeriesCellOpts(d.widgets.p50.cellOpts...),
+			)
+
+			valuesP90 = appendValue(valuesP90, res.P90)
+			d.widgets.percentilesChart.Series("p90", valuesP90,
+				linechart.SeriesCellOpts(d.widgets.p90.cellOpts...),
+			)
+
+			valuesP95 = appendValue(valuesP95, res.P95)
+			d.widgets.percentilesChart.Series("p95", valuesP95,
+				linechart.SeriesCellOpts(d.widgets.p95.cellOpts...),
+			)
+
+			valuesP99 = appendValue(valuesP99, res.P99)
+			d.widgets.percentilesChart.Series("p99", valuesP99,
+				linechart.SeriesCellOpts(d.widgets.p99.cellOpts...),
 			)
 		}
 	}

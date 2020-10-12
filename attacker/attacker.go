@@ -43,6 +43,12 @@ type Options struct {
 // Result contains the results of a single HTTP request.
 type Result struct {
 	Latency time.Duration
+
+	P50 time.Duration
+	P90 time.Duration
+	P95 time.Duration
+	P99 time.Duration
+
 	// Indicates if the last result in the entire attack.
 	End bool
 }
@@ -93,9 +99,18 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			// metricsCh is already closed (as context is done) so we shouldn't send any metric
 			return
 		default:
-			resCh <- &Result{Latency: res.Latency}
 			metrics.Add(res)
-			metricsCh <- newMetrics(&metrics)
+			m := newMetrics(&metrics)
+
+			resCh <- &Result{
+				Latency: res.Latency,
+				P50:     metrics.Latencies.Quantile(0.50),
+				P90:     metrics.Latencies.Quantile(0.90),
+				P95:     metrics.Latencies.Quantile(0.95),
+				P99:     metrics.Latencies.Quantile(0.99),
+			}
+
+			metricsCh <- m
 		}
 	}
 	metrics.Close()

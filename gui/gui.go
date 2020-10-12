@@ -19,6 +19,7 @@ const (
 	// How often termdash redraws the screen.
 	redrawInterval = 250 * time.Millisecond
 	rootID         = "root"
+	chartID        = "chart"
 )
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
@@ -45,29 +46,67 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 	if err != nil {
 		return fmt.Errorf("failed to generate widgets: %w", err)
 	}
-	gridOpts, err := gridLayout(w)
+	gopts, err := gridLayout(w)
 	if err != nil {
 		return fmt.Errorf("failed to build grid layout: %w", err)
 	}
-	if err := c.Update(rootID, gridOpts...); err != nil {
+	if err := c.Update(rootID, gopts.base...); err != nil {
 		return fmt.Errorf("failed to update container: %w", err)
 	}
 
 	d := &drawer{
 		widgets:   w,
+		gridOpts:  gopts,
 		chartCh:   make(chan *attacker.Result),
 		gaugeCh:   make(chan bool),
 		metricsCh: make(chan *attacker.Metrics),
 	}
 	go d.redrawMetrics(ctx)
 
-	k := keybinds(ctx, cancel, d, targetURL, *opts)
+	k := keybinds(ctx, cancel, c, d, targetURL, *opts)
 
 	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }
 
-func gridLayout(w *widgets) ([]container.Option, error) {
-	raw1 := grid.RowHeightPerc(70, grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")))
+func newChartWithTexts(lineChart LineChart, opts []container.Option, texts ...Text) ([]container.Option, error) {
+	textsAsColumnarWidgets := func() []grid.Element {
+		els := make([]grid.Element, 0, len(texts))
+		for _, text := range texts {
+			els = append(els, grid.ColWidthPerc(3, grid.Widget(text)))
+		}
+		return els
+	}
+
+	lopts := lineChart.Options()
+	el := grid.RowHeightPercWithOpts(70,
+		opts,
+		grid.RowHeightPerc(97, grid.ColWidthPerc(99, grid.Widget(lineChart))),
+		grid.RowHeightPercWithOpts(3,
+			[]container.Option{container.MarginLeftPercent(lopts.MinimumSize.X)},
+			textsAsColumnarWidgets()...,
+		),
+	)
+
+	g := grid.New()
+	g.Add(el)
+	return g.Build()
+}
+
+// gridOpts holds all options for our grid.
+type gridOpts struct {
+	// base options
+	base []container.Option
+
+	// so we can replace containers
+	latency     []container.Option
+	percentiles []container.Option
+}
+
+func gridLayout(w *widgets) (*gridOpts, error) {
+	raw1 := grid.RowHeightPercWithOpts(70,
+		[]container.Option{container.ID(chartID)},
+		grid.Widget(w.latencyChart, container.Border(linestyle.Light), container.BorderTitle("Latency (ms)")),
+	)
 	raw2 := grid.RowHeightPerc(25,
 		grid.ColWidthPerc(15, grid.Widget(w.paramsText, container.Border(linestyle.Light), container.BorderTitle("Parameters"))),
 		grid.ColWidthPerc(15, grid.Widget(w.latenciesText, container.Border(linestyle.Light), container.BorderTitle("Latencies"))),
@@ -90,5 +129,26 @@ func gridLayout(w *widgets) ([]container.Option, error) {
 		raw3,
 	)
 
-	return builder.Build()
+	baseOpts, err := builder.Build()
+	if err != nil {
+		return nil, err
+	}
+	latencyBuilder := grid.New()
+	latencyBuilder.Add(raw1)
+	latencyOpts, err := latencyBuilder.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	percentilesOpts, err := newChartWithTexts(w.percentilesChart, []container.Option{
+		container.Border(linestyle.Light),
+		container.ID(chartID),
+		container.BorderTitle("Percentiles (ms)"),
+	}, w.p50.text, w.p90.text, w.p95.text, w.p99.text)
+
+	return &gridOpts{
+		latency:     latencyOpts,
+		percentiles: percentilesOpts,
+		base:        baseOpts,
+	}, nil
 }

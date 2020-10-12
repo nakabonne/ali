@@ -4,19 +4,24 @@ import (
 	"context"
 	"time"
 
+	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/keyboard"
 	"github.com/mum4k/termdash/terminal/terminalapi"
 
 	"github.com/nakabonne/ali/attacker"
 )
 
-func keybinds(ctx context.Context, cancel context.CancelFunc, dr *drawer, targetURL string, opts attacker.Options) func(*terminalapi.Keyboard) {
+func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Container, dr *drawer, targetURL string, opts attacker.Options) func(*terminalapi.Keyboard) {
 	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
 		case keyboard.KeyCtrlC: // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
 			attack(ctx, dr, targetURL, opts)
+		case keyboard.KeyCtrlP: // percentiles chart
+			c.Update(chartID, dr.gridOpts.percentiles...)
+		case keyboard.KeyCtrlL: // latency chart
+			c.Update(chartID, dr.gridOpts.latency...)
 		}
 	}
 }
