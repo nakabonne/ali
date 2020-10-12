@@ -64,22 +64,22 @@ L:
 
 			valuesP50 = appendValue(valuesP50, res.P50)
 			d.widgets.percentilesChart.Series("p50", valuesP50,
-				linechart.SeriesCellOpts(d.widgets.p50.cellOpts...),
+				linechart.SeriesCellOpts(d.widgets.p50Legend.cellOpts...),
 			)
 
 			valuesP90 = appendValue(valuesP90, res.P90)
 			d.widgets.percentilesChart.Series("p90", valuesP90,
-				linechart.SeriesCellOpts(d.widgets.p90.cellOpts...),
+				linechart.SeriesCellOpts(d.widgets.p90Legend.cellOpts...),
 			)
 
 			valuesP95 = appendValue(valuesP95, res.P95)
 			d.widgets.percentilesChart.Series("p95", valuesP95,
-				linechart.SeriesCellOpts(d.widgets.p95.cellOpts...),
+				linechart.SeriesCellOpts(d.widgets.p95Legend.cellOpts...),
 			)
 
 			valuesP99 = appendValue(valuesP99, res.P99)
 			d.widgets.percentilesChart.Series("p99", valuesP99,
-				linechart.SeriesCellOpts(d.widgets.p99.cellOpts...),
+				linechart.SeriesCellOpts(d.widgets.p99Legend.cellOpts...),
 			)
 		}
 	}

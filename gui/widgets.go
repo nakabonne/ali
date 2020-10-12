@@ -44,10 +44,10 @@ type widgets struct {
 	othersText      Text
 
 	percentilesChart LineChart
-	p99              chartLegend
-	p95              chartLegend
-	p90              chartLegend
-	p50              chartLegend
+	p99Legend        chartLegend
+	p95Legend        chartLegend
+	p90Legend        chartLegend
+	p50Legend        chartLegend
 
 	progressGauge Gauge
 	navi          Text
@@ -128,10 +128,10 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		othersText:       othersText,
 		progressGauge:    progressGauge,
 		percentilesChart: percentilesChart,
-		p99:              chartLegend{p99Text, []cell.Option{p99Color}},
-		p95:              chartLegend{p95Text, []cell.Option{p95Color}},
-		p90:              chartLegend{p90Text, []cell.Option{p90Color}},
-		p50:              chartLegend{p50Text, []cell.Option{p50Color}},
+		p99Legend:        chartLegend{p99Text, []cell.Option{p99Color}},
+		p95Legend:        chartLegend{p95Text, []cell.Option{p95Color}},
+		p90Legend:        chartLegend{p90Text, []cell.Option{p90Color}},
+		p50Legend:        chartLegend{p50Text, []cell.Option{p50Color}},
 		navi:             navi,
 	}, nil
 }

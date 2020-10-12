@@ -147,7 +147,7 @@ func gridLayout(w *widgets) (*gridOpts, error) {
 		container.Border(linestyle.Light),
 		container.ID(chartID),
 		container.BorderTitle("Percentiles (ms)"),
-	}, w.p99.text, w.p90.text, w.p95.text, w.p50.text)
+	}, w.p99Legend.text, w.p90Legend.text, w.p95Legend.text, w.p50Legend.text)
 
 	return &gridOpts{
 		latency:     latencyOpts,
