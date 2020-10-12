@@ -35,7 +35,7 @@ func (d *drawer) redrawChart(ctx context.Context, maxSize int) {
 	valuesP99 := make([]float64, 0, maxSize)
 
 	appendValue := func(to []float64, val time.Duration) []float64 {
-		return append(to, float64(float64(val)/float64(time.Millisecond)))
+		return append(to, float64(val)/float64(time.Millisecond))
 	}
 
 	d.chartDrawing = true
