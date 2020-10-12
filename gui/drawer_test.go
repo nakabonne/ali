@@ -18,9 +18,10 @@ func TestRedrawChart(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name         string
-		results      []*attacker.Result
-		latencyChart LineChart
+		name             string
+		results          []*attacker.Result
+		latencyChart     LineChart
+		percentilesChart LineChart
 	}{
 		{
 			name: "one result received",
@@ -32,6 +33,14 @@ func TestRedrawChart(t *testing.T) {
 			latencyChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
 				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any())
+				return l
+			}(),
+			percentilesChart: func() LineChart {
+				l := NewMockLineChart(ctrl)
+				l.EXPECT().Series("p50", []float64{1.0}, gomock.Any())
+				l.EXPECT().Series("p90", []float64{1.0}, gomock.Any())
+				l.EXPECT().Series("p95", []float64{1.0}, gomock.Any())
+				l.EXPECT().Series("p99", []float64{1.0}, gomock.Any())
 				return l
 			}(),
 		},
@@ -51,13 +60,21 @@ func TestRedrawChart(t *testing.T) {
 				l.EXPECT().Series("latency", []float64{1.0, 2.0}, gomock.Any())
 				return l
 			}(),
+			percentilesChart: func() LineChart {
+				l := NewMockLineChart(ctrl)
+				l.EXPECT().Series("p50", []float64{1.0, 1.0}, gomock.Any())
+				l.EXPECT().Series("p90", []float64{1.0, 1.7}, gomock.Any())
+				l.EXPECT().Series("p95", []float64{1.0, 1.8}, gomock.Any())
+				l.EXPECT().Series("p99", []float64{1.0, 2.0}, gomock.Any())
+				return l
+			}(),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{latencyChart: tt.latencyChart},
+				widgets: &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
 				chartCh: make(chan *attacker.Result),
 				gaugeCh: make(chan bool, 100),
 			}
