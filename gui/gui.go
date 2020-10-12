@@ -46,17 +46,17 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 	if err != nil {
 		return fmt.Errorf("failed to generate widgets: %w", err)
 	}
-	gopts, err := gridLayout(w)
+	gridOpts, err := gridLayout(w)
 	if err != nil {
 		return fmt.Errorf("failed to build grid layout: %w", err)
 	}
-	if err := c.Update(rootID, gopts.base...); err != nil {
+	if err := c.Update(rootID, gridOpts.base...); err != nil {
 		return fmt.Errorf("failed to update container: %w", err)
 	}
 
 	d := &drawer{
 		widgets:   w,
-		gridOpts:  gopts,
+		gridOpts:  gridOpts,
 		chartCh:   make(chan *attacker.Result),
 		gaugeCh:   make(chan bool),
 		metricsCh: make(chan *attacker.Metrics),
@@ -68,8 +68,10 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
 }
 
-func newChartWithTexts(lineChart LineChart, opts []container.Option, texts ...Text) ([]container.Option, error) {
-	textsAsColumnarWidgets := func() []grid.Element {
+// newChartWithLegends creates a chart with legends at the bottom.
+// TODO: use it for more charts than percetiles. Any chart that has multiple series should use this func.
+func newChartWithLegends(lineChart LineChart, opts []container.Option, texts ...Text) ([]container.Option, error) {
+	textsInColumns := func() []grid.Element {
 		els := make([]grid.Element, 0, len(texts))
 		for _, text := range texts {
 			els = append(els, grid.ColWidthPerc(3, grid.Widget(text)))
@@ -83,7 +85,7 @@ func newChartWithTexts(lineChart LineChart, opts []container.Option, texts ...Te
 		grid.RowHeightPerc(97, grid.ColWidthPerc(99, grid.Widget(lineChart))),
 		grid.RowHeightPercWithOpts(3,
 			[]container.Option{container.MarginLeftPercent(lopts.MinimumSize.X)},
-			textsAsColumnarWidgets()...,
+			textsInColumns()...,
 		),
 	)
 
@@ -92,7 +94,8 @@ func newChartWithTexts(lineChart LineChart, opts []container.Option, texts ...Te
 	return g.Build()
 }
 
-// gridOpts holds all options for our grid.
+// gridOpts holds all options in our grid.
+// It basically holds the container options (column, width, padding, etc) of our widgets.
 type gridOpts struct {
 	// base options
 	base []container.Option
@@ -140,11 +143,11 @@ func gridLayout(w *widgets) (*gridOpts, error) {
 		return nil, err
 	}
 
-	percentilesOpts, err := newChartWithTexts(w.percentilesChart, []container.Option{
+	percentilesOpts, err := newChartWithLegends(w.percentilesChart, []container.Option{
 		container.Border(linestyle.Light),
 		container.ID(chartID),
 		container.BorderTitle("Percentiles (ms)"),
-	}, w.p50.text, w.p90.text, w.p95.text, w.p99.text)
+	}, w.p99.text, w.p90.text, w.p95.text, w.p50.text)
 
 	return &gridOpts{
 		latency:     latencyOpts,
