@@ -3,12 +3,14 @@ package gui
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/mum4k/termdash"
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/container/grid"
 	"github.com/mum4k/termdash/linestyle"
+	"github.com/mum4k/termdash/terminal/tcell"
 	"github.com/mum4k/termdash/terminal/termbox"
 	"github.com/mum4k/termdash/terminal/terminalapi"
 
@@ -24,7 +26,15 @@ const (
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
 func Run(targetURL string, opts *attacker.Options) error {
-	t, err := termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
+	var (
+		t   terminalapi.Terminal
+		err error
+	)
+	if runtime.GOOS == "windows" {
+		t, err = tcell.New()
+	} else {
+		t, err = termbox.New(termbox.ColorMode(terminalapi.ColorMode256))
+	}
 	if err != nil {
 		return fmt.Errorf("failed to generate terminal interface: %w", err)
 	}
@@ -32,7 +42,7 @@ func Run(targetURL string, opts *attacker.Options) error {
 	return run(t, termdash.Run, targetURL, opts)
 }
 
-func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options) error {
+func run(t terminalapi.Terminal, r runner, targetURL string, opts *attacker.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
