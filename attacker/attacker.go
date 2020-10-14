@@ -43,6 +43,7 @@ type Options struct {
 	Connections int
 	HTTP2       bool
 	LocalAddr   net.IPAddr
+	Buckets     []time.Duration
 
 	Attacker Attacker
 }
@@ -100,7 +101,13 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		Header: opts.Header,
 	})
 
-	metrics := &vegeta.Metrics{}
+	var metrics *vegeta.Metrics
+	if len(opts.Buckets) > 0 {
+		histogram := &vegeta.Histogram{Buckets: opts.Buckets}
+		metrics = &vegeta.Metrics{Histogram: histogram}
+	} else {
+		metrics = &vegeta.Metrics{}
+	}
 
 	child, cancelChild := context.WithCancel(ctx)
 	defer cancelChild()
