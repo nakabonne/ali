@@ -211,7 +211,7 @@ func parseBucketOptions(rawBuckets string) []time.Duration {
 		return []time.Duration{}
 	}
 
-	var result []time.Duration
+	result := make([]time.Duration, 0)
 
 	stringBuckets := strings.Split(rawBuckets, ",")
 
