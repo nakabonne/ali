@@ -11,17 +11,37 @@ import (
 	"github.com/nakabonne/ali/attacker"
 )
 
+func navigateCharts(chartFuncs []func()) func(bool) {
+	position := -1
+	numFuncs := len(chartFuncs)
+	return func(backwards bool) {
+		position++
+		if backwards {
+			position -= 2
+			if position < 0 {
+				position = numFuncs - 1
+			}
+		}
+		chartFuncs[position%numFuncs]()
+	}
+}
+
 func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Container, dr *drawer, targetURL string, opts attacker.Options) func(*terminalapi.Keyboard) {
+	funcs := []func(){
+		func() { c.Update(chartID, dr.gridOpts.latency...) },
+		func() { c.Update(chartID, dr.gridOpts.percentiles...) },
+	}
+	navigateFunc := navigateCharts(funcs)
 	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
 		case keyboard.KeyCtrlC: // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
 			attack(ctx, dr, targetURL, opts)
-		case keyboard.KeyCtrlP: // percentiles chart
-			c.Update(chartID, dr.gridOpts.percentiles...)
-		case keyboard.KeyCtrlL: // latency chart
-			c.Update(chartID, dr.gridOpts.latency...)
+		case 'H', 'h': // backwards
+			navigateFunc(true)
+		case 'L', 'l': // forwards
+			navigateFunc(false)
 		}
 	}
 }

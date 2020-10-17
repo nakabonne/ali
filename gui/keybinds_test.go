@@ -40,6 +40,144 @@ func TestKeybinds(t *testing.T) {
 	}
 }
 
+func TestNavigateCharts(t *testing.T) {
+	type test struct {
+		name            string
+		modifiedByFuncs string
+		assert          func(*testing.T, *test)
+
+		callTimes int
+		backwards bool
+		funcs     func(st *test) []func()
+	}
+
+	tests := []test{
+		{
+			name: "A single func should always be called, when called forwardly",
+			funcs: func(st *test) []func() {
+				return []func(){func() { st.modifiedByFuncs += "a" }}
+			},
+			modifiedByFuncs: "",
+			callTimes:       5,
+			backwards:       false,
+			assert: func(t *testing.T, tst *test) {
+				want := "aaaaa"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+		{
+			name: "A single func should always be called backwards as well",
+			funcs: func(st *test) []func() {
+				return []func(){func() { st.modifiedByFuncs += "a" }}
+			},
+			modifiedByFuncs: "",
+			callTimes:       5,
+			backwards:       true,
+			assert: func(t *testing.T, tst *test) {
+				want := "aaaaa"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+		{
+			name: "Navigate functions ",
+			funcs: func(st *test) []func() {
+				return []func(){
+					func() { st.modifiedByFuncs += "a" },
+					func() { st.modifiedByFuncs += "b" },
+				}
+			},
+			modifiedByFuncs: "",
+			callTimes:       5,
+			backwards:       false,
+			assert: func(t *testing.T, tst *test) {
+				want := "ababa"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+		{
+			name: "navigate backwards",
+			funcs: func(st *test) []func() {
+				return []func(){
+					func() { st.modifiedByFuncs += "a" },
+					func() { st.modifiedByFuncs += "b" },
+				}
+			},
+			modifiedByFuncs: "",
+			callTimes:       5,
+			backwards:       true,
+			assert: func(t *testing.T, tst *test) {
+				want := "babab"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+		{
+			name: "with way more funcs",
+			funcs: func(st *test) []func() {
+				return []func(){
+					func() { st.modifiedByFuncs += "a" },
+					func() { st.modifiedByFuncs += "b" },
+					func() { st.modifiedByFuncs += "c" },
+					func() { st.modifiedByFuncs += "d" },
+					func() { st.modifiedByFuncs += "e" },
+				}
+			},
+			modifiedByFuncs: "",
+			callTimes:       10,
+			backwards:       false,
+			assert: func(t *testing.T, tst *test) {
+				want := "abcdeabcde"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+		{
+			name: "with two greedy funcs that do not want others to get work done",
+			funcs: func(st *test) []func() {
+				return []func(){
+					func() {
+						st.backwards = false
+						st.modifiedByFuncs += "a"
+					},
+					func() {
+						st.backwards = true
+						st.modifiedByFuncs += "b"
+					},
+					func() { st.modifiedByFuncs += "c" },
+					func() { st.modifiedByFuncs += "d" },
+					func() { st.modifiedByFuncs += "e" },
+				}
+			},
+			modifiedByFuncs: "",
+			callTimes:       10,
+			backwards:       false,
+			assert: func(t *testing.T, tst *test) {
+				want := "ababababab"
+				if tst.modifiedByFuncs != want {
+					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fn := navigateCharts(tt.funcs(&tt))
+			for i := 0; i < tt.callTimes; i++ {
+				fn(tt.backwards)
+			}
+			tt.assert(t, &tt)
+		})
+	}
+}
+
 func TestAttack(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
