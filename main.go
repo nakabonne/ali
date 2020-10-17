@@ -45,6 +45,7 @@ type cli struct {
 	noHTTP2      bool
 	localAddress string
 	noKeepAlive  bool
+	buckets      string
 
 	debug   bool
 	version bool
@@ -81,6 +82,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
 	flagSet.BoolVar(&c.noHTTP2, "no-http2", false, "Don't issue HTTP/2 requests to servers which support it.")
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
+	flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -177,6 +179,12 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 
 	localAddr := net.IPAddr{IP: net.ParseIP(c.localAddress)}
 
+	parsedBuckets, err := parseBucketOptions(c.buckets)
+
+	if err != nil {
+		return nil, fmt.Errorf("wrong buckets format %w", err)
+	}
+
 	return &attacker.Options{
 		Rate:        c.rate,
 		Duration:    c.duration,
@@ -191,6 +199,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		Connections: c.connections,
 		HTTP2:       !c.noHTTP2,
 		LocalAddr:   localAddr,
+		Buckets:     parsedBuckets,
 	}, nil
 }
 
@@ -200,6 +209,26 @@ func validateMethod(method string) bool {
 		return true
 	}
 	return false
+}
+
+func parseBucketOptions(rawBuckets string) ([]time.Duration, error) {
+	if rawBuckets == "" {
+		return []time.Duration{}, nil
+	}
+
+	stringBuckets := strings.Split(rawBuckets, ",")
+	result := make([]time.Duration, len(stringBuckets))
+
+	for _, bucket := range stringBuckets {
+		trimmedBucket := strings.TrimSpace(bucket)
+		d, err := time.ParseDuration(trimmedBucket)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, d)
+	}
+
+	return result, nil
 }
 
 // Makes a new file under the working directory only when debug use.
