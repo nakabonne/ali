@@ -84,7 +84,7 @@ func TestNavigateCharts(t *testing.T) {
 			},
 		},
 		{
-			name: "Navigate functions ",
+			name: "Navigate functions",
 			funcs: func(st *test) []func() {
 				return []func(){
 					func() { st.modifiedByFuncs += "a" },
@@ -95,7 +95,7 @@ func TestNavigateCharts(t *testing.T) {
 			callTimes:       5,
 			backwards:       false,
 			assert: func(t *testing.T, tst *test) {
-				want := "ababa"
+				want := "babab"
 				if tst.modifiedByFuncs != want {
 					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
 				}
@@ -134,7 +134,7 @@ func TestNavigateCharts(t *testing.T) {
 			callTimes:       10,
 			backwards:       false,
 			assert: func(t *testing.T, tst *test) {
-				want := "abcdeabcde"
+				want := "bcdeabcdea"
 				if tst.modifiedByFuncs != want {
 					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
 				}
@@ -161,7 +161,7 @@ func TestNavigateCharts(t *testing.T) {
 			callTimes:       10,
 			backwards:       false,
 			assert: func(t *testing.T, tst *test) {
-				want := "ababababab"
+				want := "bababababa"
 				if tst.modifiedByFuncs != want {
 					t.Errorf("unexpected result of modifiedByFuncs: want: %s; got: %s", want, tst.modifiedByFuncs)
 				}
