@@ -22,15 +22,15 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.4.0/ali_0.4.0_linux_amd64.deb
-apt install ./ali_0.4.0_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.4.1/ali_0.4.1_linux_amd64.deb
+apt install ./ali_0.4.1_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-curl -OL https://github.com/nakabonne/ali/releases/download/v0.4.0/ali_0.4.0_linux_amd64.rpm
-rpm -i ./ali_0.4.0_linux_amd64.rpm
+curl -OL https://github.com/nakabonne/ali/releases/download/v0.4.1/ali_0.4.1_linux_amd64.rpm
+rpm -i ./ali_0.4.1_linux_amd64.rpm
 ```
 
 **Via AUR**
@@ -72,6 +72,7 @@ Usage:
 Flags:
   -b, --body string         A request body to be sent.
   -B, --body-file string    The path to file whose content will be set as the http request body.
+      --buckets             Histogram buckets in comma-separated value (example: "10ms, 100ms, 500ms".
   -c, --connections int     Amount of maximum open idle connections per target host (default 10000)
       --debug               Run in debug mode.
   -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)

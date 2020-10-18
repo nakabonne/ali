@@ -1,6 +1,7 @@
 package attacker
 
 import (
+	"sync"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -68,15 +69,17 @@ type ByteMetrics struct {
 	Mean float64 `json:"mean"`
 }
 
-func newMetrics(m *vegeta.Metrics) *Metrics {
+func newMetrics(m *vegeta.Metrics, mu *sync.Mutex) *Metrics {
+	mu.Lock()
+	defer mu.Unlock()
 	return &Metrics{
 		Latencies: LatencyMetrics{
 			Total: m.Latencies.Total,
 			Mean:  m.Latencies.Mean,
-			P50:   m.Latencies.P50,
-			P90:   m.Latencies.P90,
-			P95:   m.Latencies.P95,
-			P99:   m.Latencies.P99,
+			P50:   m.Latencies.Quantile(0.50),
+			P90:   m.Latencies.Quantile(0.90),
+			P95:   m.Latencies.Quantile(0.95),
+			P99:   m.Latencies.Quantile(0.99),
 			Max:   m.Latencies.Max,
 			Min:   m.Latencies.Min,
 		},

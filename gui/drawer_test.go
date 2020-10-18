@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -18,20 +19,35 @@ func TestRedrawChart(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name         string
-		results      []*attacker.Result
-		latencyChart LineChart
+		name             string
+		results          []*attacker.Result
+		latencyChart     LineChart
+		percentilesChart LineChart
 	}{
 		{
 			name: "one result received",
 			results: []*attacker.Result{
 				{
 					Latency: 1000000,
+					P50:     500000,
+					P90:     900000,
+					P95:     950000,
+					P99:     990000,
 				},
 			},
 			latencyChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
 				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any())
+				return l
+			}(),
+			percentilesChart: func() LineChart {
+				l := NewMockLineChart(ctrl)
+				gomock.InOrder(
+					l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
+				)
 				return l
 			}(),
 		},
@@ -40,9 +56,17 @@ func TestRedrawChart(t *testing.T) {
 			results: []*attacker.Result{
 				{
 					Latency: 1000000,
+					P50:     500000,
+					P90:     900000,
+					P95:     950000,
+					P99:     990000,
 				},
 				{
 					Latency: 2000000,
+					P50:     1000000,
+					P90:     1800000,
+					P95:     1900000,
+					P99:     1980000,
 				},
 			},
 			latencyChart: func() LineChart {
@@ -51,15 +75,30 @@ func TestRedrawChart(t *testing.T) {
 				l.EXPECT().Series("latency", []float64{1.0, 2.0}, gomock.Any())
 				return l
 			}(),
+			percentilesChart: func() LineChart {
+				l := NewMockLineChart(ctrl)
+
+				gomock.InOrder(l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
+					l.EXPECT().Series("p50", []float64{0.5, 1.0}, gomock.Any()),
+					l.EXPECT().Series("p90", []float64{0.9, 1.8}, gomock.Any()),
+					l.EXPECT().Series("p95", []float64{0.95, 1.9}, gomock.Any()),
+					l.EXPECT().Series("p99", []float64{0.99, 1.98}, gomock.Any()),
+				)
+				return l
+			}(),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{latencyChart: tt.latencyChart},
-				chartCh: make(chan *attacker.Result),
-				gaugeCh: make(chan bool, 100),
+				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
+				chartCh:      make(chan *attacker.Result),
+				gaugeCh:      make(chan bool, 100),
+				chartDrawing: atomic.NewBool(false),
 			}
 			go d.redrawChart(ctx, len(tt.results))
 			for _, res := range tt.results {
@@ -109,8 +148,9 @@ func TestRedrawGauge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{progressGauge: tt.gauge},
-				gaugeCh: make(chan bool),
+				widgets:      &widgets{progressGauge: tt.gauge},
+				gaugeCh:      make(chan bool),
+				chartDrawing: atomic.NewBool(false),
 			}
 			go d.redrawGauge(ctx, tt.size)
 			for i := 0; i < tt.size; i++ {
