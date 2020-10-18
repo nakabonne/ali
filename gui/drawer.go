@@ -8,18 +8,20 @@ import (
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
 
 type drawer struct {
 	widgets   *widgets
+	gridOpts  *gridOpts
 	chartCh   chan *attacker.Result
 	gaugeCh   chan bool
 	metricsCh chan *attacker.Metrics
 
 	// aims to avoid to perform multiple `redrawChart`.
-	chartDrawing bool
+	chartDrawing *atomic.Bool
 }
 
 // redrawChart appends entities as soon as a result arrives.
@@ -27,7 +29,17 @@ type drawer struct {
 // TODO: In the future, multiple charts including bytes-in/out etc will be re-drawn.
 func (d *drawer) redrawChart(ctx context.Context, maxSize int) {
 	values := make([]float64, 0, maxSize)
-	d.chartDrawing = true
+
+	valuesP50 := make([]float64, 0, maxSize)
+	valuesP90 := make([]float64, 0, maxSize)
+	valuesP95 := make([]float64, 0, maxSize)
+	valuesP99 := make([]float64, 0, maxSize)
+
+	appendValue := func(to []float64, val time.Duration) []float64 {
+		return append(to, float64(val)/float64(time.Millisecond))
+	}
+
+	d.chartDrawing.Store(true)
 L:
 	for {
 		select {
@@ -42,16 +54,37 @@ L:
 				break L
 			}
 			d.gaugeCh <- false
-			values = append(values, float64(res.Latency/time.Millisecond))
+
+			values = appendValue(values, res.Latency)
 			d.widgets.latencyChart.Series("latency", values,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
 					0: "req",
 				}),
 			)
+
+			valuesP50 = appendValue(valuesP50, res.P50)
+			d.widgets.percentilesChart.Series("p50", valuesP50,
+				linechart.SeriesCellOpts(d.widgets.p50Legend.cellOpts...),
+			)
+
+			valuesP90 = appendValue(valuesP90, res.P90)
+			d.widgets.percentilesChart.Series("p90", valuesP90,
+				linechart.SeriesCellOpts(d.widgets.p90Legend.cellOpts...),
+			)
+
+			valuesP95 = appendValue(valuesP95, res.P95)
+			d.widgets.percentilesChart.Series("p95", valuesP95,
+				linechart.SeriesCellOpts(d.widgets.p95Legend.cellOpts...),
+			)
+
+			valuesP99 = appendValue(valuesP99, res.P99)
+			d.widgets.percentilesChart.Series("p99", valuesP99,
+				linechart.SeriesCellOpts(d.widgets.p99Legend.cellOpts...),
+			)
 		}
 	}
-	d.chartDrawing = false
+	d.chartDrawing.Store(false)
 }
 
 func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
