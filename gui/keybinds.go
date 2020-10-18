@@ -12,7 +12,7 @@ import (
 )
 
 func navigateCharts(chartFuncs []func()) func(bool) {
-	position := -1
+	position := 0
 	numFuncs := len(chartFuncs)
 	return func(backwards bool) {
 		position++
