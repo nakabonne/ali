@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -94,9 +95,10 @@ func TestRedrawChart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
-				chartCh: make(chan *attacker.Result),
-				gaugeCh: make(chan bool, 100),
+				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
+				chartCh:      make(chan *attacker.Result),
+				gaugeCh:      make(chan bool, 100),
+				chartDrawing: atomic.NewBool(false),
 			}
 			go d.redrawChart(ctx, len(tt.results))
 			for _, res := range tt.results {
@@ -146,8 +148,9 @@ func TestRedrawGauge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{progressGauge: tt.gauge},
-				gaugeCh: make(chan bool),
+				widgets:      &widgets{progressGauge: tt.gauge},
+				gaugeCh:      make(chan bool),
+				chartDrawing: atomic.NewBool(false),
 			}
 			go d.redrawGauge(ctx, tt.size)
 			for i := 0; i < tt.size; i++ {

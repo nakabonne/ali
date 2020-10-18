@@ -2,7 +2,6 @@ package gui
 
 import (
 	"context"
-	"sync/atomic"
 	"time"
 
 	"github.com/mum4k/termdash/container"
@@ -48,7 +47,7 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 }
 
 func attack(ctx context.Context, d *drawer, target string, opts attacker.Options) {
-	if atomic.LoadInt32(&d.chartDrawing) == 1 {
+	if d.chartDrawing.Load() {
 		return
 	}
 	requestNum := opts.Rate * int(opts.Duration/time.Second)

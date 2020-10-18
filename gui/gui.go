@@ -11,6 +11,7 @@ import (
 	"github.com/mum4k/termdash/linestyle"
 	"github.com/mum4k/termdash/terminal/termbox"
 	"github.com/mum4k/termdash/terminal/terminalapi"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -55,11 +56,12 @@ func run(t *termbox.Terminal, r runner, targetURL string, opts *attacker.Options
 	}
 
 	d := &drawer{
-		widgets:   w,
-		gridOpts:  gridOpts,
-		chartCh:   make(chan *attacker.Result),
-		gaugeCh:   make(chan bool),
-		metricsCh: make(chan *attacker.Metrics),
+		widgets:      w,
+		gridOpts:     gridOpts,
+		chartCh:      make(chan *attacker.Result),
+		gaugeCh:      make(chan bool),
+		metricsCh:    make(chan *attacker.Metrics),
+		chartDrawing: atomic.NewBool(false),
 	}
 	go d.redrawMetrics(ctx)
 

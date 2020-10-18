@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/mum4k/termdash/keyboard"
 	"github.com/mum4k/termdash/terminal/terminalapi"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -187,11 +188,11 @@ func TestAttack(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		chartDrawing int32
+		chartDrawing *atomic.Bool
 	}{
 		{
 			name:         "chart is drawing",
-			chartDrawing: 1,
+			chartDrawing: atomic.NewBool(true),
 		},
 	}
 	for _, tt := range tests {

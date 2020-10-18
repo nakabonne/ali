@@ -3,12 +3,12 @@ package gui
 import (
 	"context"
 	"fmt"
-	"sync/atomic"
 	"time"
 
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
+	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
 )
@@ -21,7 +21,7 @@ type drawer struct {
 	metricsCh chan *attacker.Metrics
 
 	// aims to avoid to perform multiple `redrawChart`.
-	chartDrawing int32
+	chartDrawing *atomic.Bool
 }
 
 // redrawChart appends entities as soon as a result arrives.
@@ -39,7 +39,7 @@ func (d *drawer) redrawChart(ctx context.Context, maxSize int) {
 		return append(to, float64(val)/float64(time.Millisecond))
 	}
 
-	atomic.StoreInt32(&d.chartDrawing, 1)
+	d.chartDrawing.Store(true)
 L:
 	for {
 		select {
@@ -84,7 +84,7 @@ L:
 			)
 		}
 	}
-	atomic.StoreInt32(&d.chartDrawing, 0)
+	d.chartDrawing.Store(false)
 }
 
 func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
