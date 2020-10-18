@@ -82,7 +82,8 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
 	flagSet.BoolVar(&c.noHTTP2, "no-http2", false, "Don't issue HTTP/2 requests to servers which support it.")
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
-	flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
+	// TODO: Re-enable when making it capable of drawing histogram bar chart.
+	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
