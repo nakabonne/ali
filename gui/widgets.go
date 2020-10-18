@@ -80,22 +80,22 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		return nil, err
 	}
 
-	p99Color := cell.FgColor(cell.ColorNumber(104))
+	p99Color := cell.FgColor(cell.ColorNumber(87))
 	p99Text, err := newText("p99", text.WriteCellOpts(p99Color))
 	if err != nil {
 		return nil, err
 	}
-	p95Color := cell.FgColor(cell.ColorNumber(89))
+	p95Color := cell.FgColor(cell.ColorGreen)
 	p95Text, err := newText("p95", text.WriteCellOpts(p95Color))
 	if err != nil {
 		return nil, err
 	}
-	p90Color := cell.FgColor(cell.ColorNumber(88))
+	p90Color := cell.FgColor(cell.ColorYellow)
 	p90Text, err := newText("p90", text.WriteCellOpts(p90Color))
 	if err != nil {
 		return nil, err
 	}
-	p50Color := cell.FgColor(cell.ColorNumber(87))
+	p50Color := cell.FgColor(cell.ColorMagenta)
 	p50Text, err := newText("p50", text.WriteCellOpts(p50Color))
 	if err != nil {
 		return nil, err
