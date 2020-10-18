@@ -22,15 +22,15 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.4.1/ali_0.4.1_linux_amd64.deb
-apt install ./ali_0.4.1_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.5.0/ali_0.5.0_linux_amd64.deb
+apt install ./ali_0.5.0_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-curl -OL https://github.com/nakabonne/ali/releases/download/v0.4.1/ali_0.4.1_linux_amd64.rpm
-rpm -i ./ali_0.4.1_linux_amd64.rpm
+curl -OL https://github.com/nakabonne/ali/releases/download/v0.5.0/ali_0.5.0_linux_amd64.rpm
+rpm -i ./ali_0.5.0_linux_amd64.rpm
 ```
 
 **Via AUR**
@@ -64,7 +64,7 @@ Press Enter when the UI appears, then the attack will be launched with default o
 
 ### Options
 
-```bash
+```
 ali -h
 Usage:
   ali [flags] <target URL>
@@ -91,10 +91,32 @@ Flags:
 
 Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 
+### Charts
+Press `l` (or `h`) to switch the displayed chart. On all charts, you can click and drag to select a region to zoom into.
+
+**Latency**
+
+![Screenshot](images/latency-chart.png)
+
+The X-axis represents the request counts and the Y-axis represents latencies in milliseconds.
+
+**Percentiles**
+
+![Screenshot](images/percentiles-chart.png)
+
+You can see how the the 50th, 90th, 95th and 99th percentiles are changing.
+
+**Bytes**
+
+>TBA
+
+**Histogram**
+
+>TBA
+
 ## Features
 
 ### Plot in real-time
-Currently it only plots latencies, but in the near future more metrics will be drawn as well.
 
 ![Screenshot](images/real-time.gif)
 
@@ -108,12 +130,7 @@ With the help of [mum4k/termdash](https://github.com/mum4k/termdash) can be used
 
 ![Screenshot](images/mouse-support.gif)
 
-## Roadmap
-- [x] Eliminate field-based configuration and only support configuration through cli flags
-- [ ] Support more options for HTTP requests ([#1](https://github.com/nakabonne/ali/issues/1))
-- [ ] Plot more metrics in real-time ([#2](https://github.com/nakabonne/ali/issues/2))
-
 ## Acknowledgements
 This project would not have been possible without the effort of many individuals and projects but especially [vegeta](https://github.com/tsenart/vegeta) for the inspiration and powerful API.
 Besides, `ali` is built with [termdash](https://github.com/mum4k/termdash) (as well as [termbox-go](https://github.com/nsf/termbox-go)) for the rendering of all those fancy graphs on the terminal.
-They clearly stimulated an incentive to creation. Thank you for all of them.
+They clearly stimulated an incentive to creation. A big "thank you!" goes out to all those who helped.
