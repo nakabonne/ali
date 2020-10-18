@@ -110,7 +110,7 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		return nil, err
 	}
 
-	navi, err := newText("Ctrl-C: quit, Enter: attack")
+	navi, err := newText("Ctrl-C: quit, Enter: attack, l: next chart, h: prev chart")
 	if err != nil {
 		return nil, err
 	}
