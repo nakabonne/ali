@@ -187,11 +187,11 @@ func TestAttack(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		chartDrawing bool
+		chartDrawing int32
 	}{
 		{
 			name:         "chart is drawing",
-			chartDrawing: true,
+			chartDrawing: 1,
 		},
 	}
 	for _, tt := range tests {

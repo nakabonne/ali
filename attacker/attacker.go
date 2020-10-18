@@ -5,6 +5,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -110,7 +111,10 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 
 	child, cancelChild := context.WithCancel(ctx)
 	defer cancelChild()
-	go sendMetrics(child, metrics, metricsCh)
+
+	// used to protect metrics
+	mu := &sync.Mutex{}
+	go sendMetrics(child, metrics, metricsCh, mu)
 
 	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
 		select {
@@ -118,21 +122,27 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			opts.Attacker.Stop()
 			return
 		default:
+			mu.Lock()
 			metrics.Add(res)
+			p50 := metrics.Latencies.Quantile(0.50)
+			p90 := metrics.Latencies.Quantile(0.90)
+			p95 := metrics.Latencies.Quantile(0.95)
+			p99 := metrics.Latencies.Quantile(0.99)
+			mu.Unlock()
 			resCh <- &Result{
 				Latency: res.Latency,
-				P50:     metrics.Latencies.Quantile(0.50),
-				P90:     metrics.Latencies.Quantile(0.90),
-				P95:     metrics.Latencies.Quantile(0.95),
-				P99:     metrics.Latencies.Quantile(0.99),
+				P50:     p50,
+				P90:     p90,
+				P95:     p95,
+				P99:     p99,
 			}
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(metrics)
+	metricsCh <- newMetrics(metrics, mu)
 }
 
-func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metrics) {
+func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metrics, mu *sync.Mutex) {
 	// TODO: Make the interval changeable.
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
@@ -142,7 +152,7 @@ func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metric
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			ch <- newMetrics(metrics)
+			ch <- newMetrics(metrics, mu)
 		}
 	}
 }
