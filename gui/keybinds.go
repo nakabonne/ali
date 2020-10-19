@@ -51,12 +51,13 @@ func attack(ctx context.Context, d *drawer, target string, opts attacker.Options
 		return
 	}
 	requestNum := opts.Rate * int(opts.Duration/time.Second)
+	d.doneCh = make(chan struct{})
 
-	// To pre-allocate, run redrawChart on a per-attack basis.
-	go d.redrawChart(ctx, requestNum)
-	go d.redrawGauge(ctx, requestNum)
+	// To initialize, run redrawChart on a per-attack basis.
+	go d.appendChartValues(ctx, requestNum)
+	go d.redrawCharts(ctx)
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
 		attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o) // this blocks until attack finishes
-		d.chartCh <- &attacker.Result{End: true}
+		close(d.doneCh)
 	}(ctx, d, target, opts)
 }
