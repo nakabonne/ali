@@ -11,7 +11,7 @@ import (
 	"github.com/nakabonne/ali/attacker"
 )
 
-func TestRedrawChart(t *testing.T) {
+func TestAppendChartValues(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -19,10 +19,9 @@ func TestRedrawChart(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name             string
-		results          []*attacker.Result
-		latencyChart     LineChart
-		percentilesChart LineChart
+		name          string
+		results       []*attacker.Result
+		progressGauge Gauge
 	}{
 		{
 			name: "one result received",
@@ -35,20 +34,10 @@ func TestRedrawChart(t *testing.T) {
 					P99:     990000,
 				},
 			},
-			latencyChart: func() LineChart {
-				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any())
-				return l
-			}(),
-			percentilesChart: func() LineChart {
-				l := NewMockLineChart(ctrl)
-				gomock.InOrder(
-					l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
-					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
-					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
-					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
-				)
-				return l
+			progressGauge: func() Gauge {
+				g := NewMockGauge(ctrl)
+				g.EXPECT().Percent(gomock.Any()).AnyTimes()
+				return g
 			}(),
 		},
 		{
@@ -69,24 +58,67 @@ func TestRedrawChart(t *testing.T) {
 					P99:     1980000,
 				},
 			},
+			progressGauge: func() Gauge {
+				g := NewMockGauge(ctrl)
+				g.EXPECT().Percent(gomock.Any()).AnyTimes()
+				return g
+			}(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &drawer{
+				widgets:      &widgets{progressGauge: tt.progressGauge},
+				chartCh:      make(chan *attacker.Result),
+				gaugeCh:      make(chan struct{}, 100),
+				doneCh:       make(chan struct{}),
+				chartDrawing: atomic.NewBool(false),
+			}
+			go d.appendChartValues(ctx, len(tt.results))
+			for _, res := range tt.results {
+				d.chartCh <- res
+			}
+			close(d.doneCh)
+		})
+	}
+}
+
+func TestRedrawCharts(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	tests := []struct {
+		name             string
+		latencyChart     LineChart
+		percentilesChart LineChart
+		latencies        []float64
+		p50              []float64
+		p90              []float64
+		p95              []float64
+		p99              []float64
+	}{
+		{
+			name:      "one result received",
+			latencies: []float64{1},
+			p50:       []float64{0.5},
+			p90:       []float64{0.9},
+			p95:       []float64{0.95},
+			p99:       []float64{0.99},
 			latencyChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any())
-				l.EXPECT().Series("latency", []float64{1.0, 2.0}, gomock.Any())
+				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any()).AnyTimes()
 				return l
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-
-				gomock.InOrder(l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()),
-					l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()),
-					l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()),
-					l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()),
-					l.EXPECT().Series("p50", []float64{0.5, 1.0}, gomock.Any()),
-					l.EXPECT().Series("p90", []float64{0.9, 1.8}, gomock.Any()),
-					l.EXPECT().Series("p95", []float64{0.95, 1.9}, gomock.Any()),
-					l.EXPECT().Series("p99", []float64{0.99, 1.98}, gomock.Any()),
-				)
+				l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()).AnyTimes()
 				return l
 			}(),
 		},
@@ -97,14 +129,19 @@ func TestRedrawChart(t *testing.T) {
 			d := &drawer{
 				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
 				chartCh:      make(chan *attacker.Result),
-				gaugeCh:      make(chan bool, 100),
+				gaugeCh:      make(chan struct{}, 100),
+				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
+				chartValues: values{
+					latencies: tt.latencies,
+					p50:       tt.p50,
+					p90:       tt.p90,
+					p95:       tt.p95,
+					p99:       tt.p99,
+				},
 			}
-			go d.redrawChart(ctx, len(tt.results))
-			for _, res := range tt.results {
-				d.chartCh <- res
-			}
-			d.chartCh <- &attacker.Result{End: true}
+			go d.redrawCharts(ctx)
+			close(d.doneCh)
 		})
 	}
 }
@@ -132,36 +169,23 @@ func TestRedrawGauge(t *testing.T) {
 				return g
 			}(),
 		},
-		{
-			name: "draw twice",
-			size: 2,
-			gauge: func() Gauge {
-				g := NewMockGauge(ctrl)
-				g.EXPECT().Percent(0)
-				g.EXPECT().Percent(50)
-				g.EXPECT().Percent(100)
-				return g
-			}(),
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets:      &widgets{progressGauge: tt.gauge},
-				gaugeCh:      make(chan bool),
-				chartDrawing: atomic.NewBool(false),
+				widgets: &widgets{progressGauge: tt.gauge},
+				gaugeCh: make(chan struct{}),
 			}
 			go d.redrawGauge(ctx, tt.size)
 			for i := 0; i < tt.size; i++ {
-				d.gaugeCh <- false
+				d.gaugeCh <- struct{}{}
 			}
-			d.gaugeCh <- true
 		})
 	}
 }
 
-func TestRedrawMetrics(t *testing.T) {
+func TestUpdateMetrics(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -174,29 +198,6 @@ func TestRedrawMetrics(t *testing.T) {
 		statusCodesText Text
 		errorsText      Text
 	}{
-		{
-			name: "nil metrics given",
-			latenciesText: func() Text {
-				t := NewMockText(ctrl)
-				return t
-			}(),
-			bytesText: func() Text {
-				t := NewMockText(ctrl)
-				return t
-			}(),
-			othersText: func() Text {
-				t := NewMockText(ctrl)
-				return t
-			}(),
-			statusCodesText: func() Text {
-				t := NewMockText(ctrl)
-				return t
-			}(),
-			errorsText: func() Text {
-				t := NewMockText(ctrl)
-				return t
-			}(),
-		},
 		{
 			name: "with errors",
 			metrics: &attacker.Metrics{
@@ -239,7 +240,7 @@ P90: 1ns
 P95: 1ns
 P99: 1ns
 Max: 1ns
-Min: 1ns`, gomock.Any())
+Min: 1ns`, gomock.Any()).AnyTimes()
 				return t
 			}(),
 
@@ -250,21 +251,21 @@ Min: 1ns`, gomock.Any())
   Mean: 1
 Out:
   Total: 1
-  Mean: 1`, gomock.Any())
+  Mean: 1`, gomock.Any()).AnyTimes()
 				return t
 			}(),
 
 			statusCodesText: func() Text {
 				t := NewMockText(ctrl)
 				t.EXPECT().Write(`"200": 2
-`, gomock.Any())
+`, gomock.Any()).AnyTimes()
 				return t
 			}(),
 
 			errorsText: func() Text {
 				t := NewMockText(ctrl)
 				t.EXPECT().Write(`- error1
-`, gomock.Any())
+`, gomock.Any()).AnyTimes()
 				return t
 			}(),
 
@@ -278,7 +279,7 @@ Throughput: 1.000000
 Success: 1.000000
 Earliest: 2009-11-10T23:00:00Z
 Latest: 2009-11-10T23:00:00Z
-End: 2009-11-10T23:00:00Z`, gomock.Any())
+End: 2009-11-10T23:00:00Z`, gomock.Any()).AnyTimes()
 
 				return t
 			}(),
@@ -296,15 +297,11 @@ End: 2009-11-10T23:00:00Z`, gomock.Any())
 					statusCodesText: tt.statusCodesText,
 					errorsText:      tt.errorsText,
 				},
-				metricsCh: make(chan *attacker.Metrics),
+				metrics: tt.metrics,
 			}
 			go d.redrawMetrics(ctx)
-			d.metricsCh <- tt.metrics
+			time.Sleep(1 * time.Second)
 			cancel()
-			// TODO: Stop waiting inappropriately.
-			// Currently waiting in a rough manner to ensure that the mock function
-			// is called in the `redrawMetrics`, but it is unstable and inefficient.
-			time.Sleep(2 * time.Second)
 		})
 	}
 }

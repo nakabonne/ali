@@ -5,7 +5,6 @@ import (
 	"math"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -57,15 +56,12 @@ type Result struct {
 	P90 time.Duration
 	P95 time.Duration
 	P99 time.Duration
-
-	// Indicates if the last result in the entire attack.
-	End bool
 }
 
 // Attack keeps the request running for the specified period of time.
 // Results are sent to the given channel as soon as they arrive.
 // When the attack is over, it gives back final statistics.
-func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh chan *Metrics, opts Options) {
+func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh chan *Metrics, opts Options) {
 	if target == "" {
 		return
 	}
@@ -108,20 +104,10 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 		Header: opts.Header,
 	})
 
-	var metrics *vegeta.Metrics
+	metrics := &vegeta.Metrics{}
 	if len(opts.Buckets) > 0 {
-		histogram := &vegeta.Histogram{Buckets: opts.Buckets}
-		metrics = &vegeta.Metrics{Histogram: histogram}
-	} else {
-		metrics = &vegeta.Metrics{}
+		metrics.Histogram = &vegeta.Histogram{Buckets: opts.Buckets}
 	}
-
-	child, cancelChild := context.WithCancel(ctx)
-	defer cancelChild()
-
-	// used to protect metrics
-	mu := &sync.Mutex{}
-	go sendMetrics(child, metrics, metricsCh, mu)
 
 	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
 		select {
@@ -129,37 +115,18 @@ func Attack(ctx context.Context, target string, resCh chan *Result, metricsCh ch
 			opts.Attacker.Stop()
 			return
 		default:
-			mu.Lock()
 			metrics.Add(res)
-			p50 := metrics.Latencies.Quantile(0.50)
-			p90 := metrics.Latencies.Quantile(0.90)
-			p95 := metrics.Latencies.Quantile(0.95)
-			p99 := metrics.Latencies.Quantile(0.99)
-			mu.Unlock()
+			m := newMetrics(metrics)
 			resCh <- &Result{
 				Latency: res.Latency,
-				P50:     p50,
-				P90:     p90,
-				P95:     p95,
-				P99:     p99,
+				P50:     m.Latencies.P50,
+				P90:     m.Latencies.P90,
+				P95:     m.Latencies.P95,
+				P99:     m.Latencies.P99,
 			}
+			metricsCh <- m
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(metrics, mu)
-}
-
-func sendMetrics(ctx context.Context, metrics *vegeta.Metrics, ch chan<- *Metrics, mu *sync.Mutex) {
-	// TODO: Make the interval changeable.
-	ticker := time.NewTicker(250 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			ch <- newMetrics(metrics, mu)
-		}
-	}
+	metricsCh <- newMetrics(metrics)
 }
