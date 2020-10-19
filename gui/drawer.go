@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
@@ -133,7 +132,6 @@ func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
 	for {
 		select {
 		case <-ctx.Done():
-			pp.Println("finish!")
 			return
 		case <-d.gaugeCh:
 			count++
