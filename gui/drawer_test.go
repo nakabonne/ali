@@ -169,25 +169,13 @@ func TestRedrawGauge(t *testing.T) {
 				return g
 			}(),
 		},
-		{
-			name: "draw twice",
-			size: 2,
-			gauge: func() Gauge {
-				g := NewMockGauge(ctrl)
-				g.EXPECT().Percent(0)
-				g.EXPECT().Percent(50)
-				g.EXPECT().Percent(100)
-				return g
-			}(),
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets:      &widgets{progressGauge: tt.gauge},
-				gaugeCh:      make(chan struct{}),
-				chartDrawing: atomic.NewBool(false),
+				widgets: &widgets{progressGauge: tt.gauge},
+				gaugeCh: make(chan struct{}),
 			}
 			go d.redrawGauge(ctx, tt.size)
 			for i := 0; i < tt.size; i++ {
