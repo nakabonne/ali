@@ -104,7 +104,7 @@ The X-axis represents the request counts and the Y-axis represents latencies in 
 
 ![Screenshot](images/percentiles-chart.png)
 
-You can see how the the 50th, 90th, 95th and 99th percentiles are changing.
+You can see how the 50th, 90th, 95th, and 99th percentiles are changing.
 
 **Bytes**
 
