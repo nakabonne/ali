@@ -34,7 +34,7 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 	navigateFunc := navigateCharts(funcs)
 	return func(k *terminalapi.Keyboard) {
 		switch k.Key {
-		case keyboard.KeyCtrlC: // Quit
+		case keyboard.KeyCtrlC, 'q': // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
 			attack(ctx, dr, targetURL, opts)
