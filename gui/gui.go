@@ -68,7 +68,7 @@ func run(t terminalapi.Terminal, r runner, targetURL string, opts *attacker.Opti
 	d := &drawer{
 		widgets:      w,
 		gridOpts:     gridOpts,
-		chartCh:      make(chan *attacker.Result),
+		chartCh:      make(chan *attacker.Result, 10000),
 		gaugeCh:      make(chan struct{}),
 		metricsCh:    make(chan *attacker.Metrics),
 		chartDrawing: atomic.NewBool(false),
