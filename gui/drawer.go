@@ -26,13 +26,12 @@ type drawer struct {
 	metricsCh chan *attacker.Metrics
 	doneCh    chan struct{}
 
-	chartValues values
-	metrics     *attacker.Metrics
-
 	// aims to avoid to perform multiple `appendChartValues`.
 	chartDrawing *atomic.Bool
 
-	mu sync.RWMutex
+	mu          sync.RWMutex
+	chartValues values
+	metrics     *attacker.Metrics
 }
 
 type values struct {
