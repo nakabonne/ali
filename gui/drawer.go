@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -213,11 +214,17 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				m.End.Format(time.RFC3339),
 			), text.WriteReplace())
 
-			// TODO: Guaranteed to be in order.
+			// To guarantee that status codes are in order
+			// taking the slice of keys and sorting them.
 			codesText := ""
-			for code, n := range m.StatusCodes {
+			var keys []string
+			for k := range m.StatusCodes {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
 				codesText += fmt.Sprintf(`%q: %d
-`, code, n)
+`, k, m.StatusCodes[k])
 			}
 			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
 
