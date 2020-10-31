@@ -22,15 +22,14 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.5.2/ali_0.5.2_linux_amd64.deb
-apt install ./ali_0.5.2_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.5.3/ali_0.5.3_linux_amd64.deb
+apt install ./ali_0.5.3_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-curl -OL https://github.com/nakabonne/ali/releases/download/v0.5.2/ali_0.5.2_linux_amd64.rpm
-rpm -i ./ali_0.5.2_linux_amd64.rpm
+rpm -ivh https://github.com/nakabonne/ali/releases/download/v0.5.3/ali_0.5.3_linux_amd64.rpm
 ```
 
 **Via AUR**
