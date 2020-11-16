@@ -21,6 +21,7 @@ func TestAppendChartValues(t *testing.T) {
 	tests := []struct {
 		name          string
 		results       []*attacker.Result
+		duration      time.Duration
 		progressGauge Gauge
 	}{
 		{
@@ -34,6 +35,7 @@ func TestAppendChartValues(t *testing.T) {
 					P99:     990000,
 				},
 			},
+			duration: 1,
 			progressGauge: func() Gauge {
 				g := NewMockGauge(ctrl)
 				g.EXPECT().Percent(gomock.Any()).AnyTimes()
@@ -58,6 +60,7 @@ func TestAppendChartValues(t *testing.T) {
 					P99:     1980000,
 				},
 			},
+			duration: 2,
 			progressGauge: func() Gauge {
 				g := NewMockGauge(ctrl)
 				g.EXPECT().Percent(gomock.Any()).AnyTimes()
@@ -75,7 +78,7 @@ func TestAppendChartValues(t *testing.T) {
 				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
 			}
-			go d.appendChartValues(ctx, len(tt.results))
+			go d.appendChartValues(ctx, len(tt.results), tt.duration)
 			for _, res := range tt.results {
 				d.chartCh <- res
 			}
@@ -155,7 +158,7 @@ func TestRedrawGauge(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		size  int
+		size  time.Duration
 		count int
 		gauge Gauge
 	}{
@@ -178,7 +181,7 @@ func TestRedrawGauge(t *testing.T) {
 				gaugeCh: make(chan struct{}),
 			}
 			go d.redrawGauge(ctx, tt.size)
-			for i := 0; i < tt.size; i++ {
+			for i := 0; i < int(tt.size); i++ {
 				d.gaugeCh <- struct{}{}
 			}
 		})
