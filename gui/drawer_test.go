@@ -21,6 +21,7 @@ func TestAppendChartValues(t *testing.T) {
 	tests := []struct {
 		name          string
 		results       []*attacker.Result
+		duration      time.Duration
 		progressGauge Gauge
 	}{
 		{
@@ -34,6 +35,7 @@ func TestAppendChartValues(t *testing.T) {
 					P99:     990000,
 				},
 			},
+			duration: 1,
 			progressGauge: func() Gauge {
 				g := NewMockGauge(ctrl)
 				g.EXPECT().Percent(gomock.Any()).AnyTimes()
@@ -58,6 +60,7 @@ func TestAppendChartValues(t *testing.T) {
 					P99:     1980000,
 				},
 			},
+			duration: 2,
 			progressGauge: func() Gauge {
 				g := NewMockGauge(ctrl)
 				g.EXPECT().Percent(gomock.Any()).AnyTimes()
@@ -71,11 +74,10 @@ func TestAppendChartValues(t *testing.T) {
 			d := &drawer{
 				widgets:      &widgets{progressGauge: tt.progressGauge},
 				chartCh:      make(chan *attacker.Result),
-				gaugeCh:      make(chan struct{}, 100),
 				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
 			}
-			go d.appendChartValues(ctx, len(tt.results))
+			go d.appendChartValues(ctx, len(tt.results), tt.duration)
 			for _, res := range tt.results {
 				d.chartCh <- res
 			}
@@ -129,7 +131,6 @@ func TestRedrawCharts(t *testing.T) {
 			d := &drawer{
 				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
 				chartCh:      make(chan *attacker.Result),
-				gaugeCh:      make(chan struct{}, 100),
 				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
 				chartValues: values{
@@ -155,7 +156,7 @@ func TestRedrawGauge(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		size  int
+		size  time.Duration
 		count int
 		gauge Gauge
 	}{
@@ -164,8 +165,8 @@ func TestRedrawGauge(t *testing.T) {
 			size: 1,
 			gauge: func() Gauge {
 				g := NewMockGauge(ctrl)
-				g.EXPECT().Percent(0)
-				g.EXPECT().Percent(100)
+				g.EXPECT().Percent(0, gomock.Any()).AnyTimes()
+				g.EXPECT().Percent(100, gomock.Any()).AnyTimes()
 				return g
 			}(),
 		},
@@ -175,12 +176,8 @@ func TestRedrawGauge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
 				widgets: &widgets{progressGauge: tt.gauge},
-				gaugeCh: make(chan struct{}),
 			}
 			go d.redrawGauge(ctx, tt.size)
-			for i := 0; i < tt.size; i++ {
-				d.gaugeCh <- struct{}{}
-			}
 		})
 	}
 }

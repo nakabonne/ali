@@ -23,7 +23,6 @@ type drawer struct {
 	gridOpts *gridOpts
 
 	chartCh   chan *attacker.Result
-	gaugeCh   chan struct{}
 	metricsCh chan *attacker.Metrics
 	doneCh    chan struct{}
 
@@ -45,13 +44,14 @@ type values struct {
 
 // appendChartValues appends entities as soon as a result arrives.
 // Given maxSize, then it can be pre-allocated.
-func (d *drawer) appendChartValues(ctx context.Context, maxSize int) {
+func (d *drawer) appendChartValues(ctx context.Context, rate int, duration time.Duration) {
 	// TODO: Change how to stop `redrawGauge`.
 	// We currently use this way to ensure to stop `redrawGauge` after the increase process is complete.
 	// But, it's preferable to stop goroutine where it's generated.
+	maxSize := rate * int(duration/time.Second)
 	child, cancel := context.WithCancel(ctx)
 	defer cancel()
-	go d.redrawGauge(child, maxSize)
+	go d.redrawGauge(child, duration)
 
 	d.chartValues.latencies = make([]float64, 0, maxSize)
 	d.chartValues.p50 = make([]float64, 0, maxSize)
@@ -74,8 +74,6 @@ L:
 			if res == nil {
 				continue
 			}
-			// Increment the gauge.
-			d.gaugeCh <- struct{}{}
 
 			d.mu.Lock()
 			d.chartValues.latencies = appendValue(d.chartValues.latencies, res.Latency)
@@ -125,17 +123,26 @@ L:
 	d.chartDrawing.Store(false)
 }
 
-func (d *drawer) redrawGauge(ctx context.Context, maxSize int) {
-	var count float64
-	size := float64(maxSize)
+func (d *drawer) redrawGauge(ctx context.Context, duration time.Duration) {
+	ticker := time.NewTicker(redrawInterval)
+	defer ticker.Stop()
+
+	totalTime := float64(duration)
+
 	d.widgets.progressGauge.Percent(0)
-	for {
+	for start := time.Now(); ; {
 		select {
 		case <-ctx.Done():
 			return
-		case <-d.gaugeCh:
-			count++
-			d.widgets.progressGauge.Percent(int(count / size * 100))
+		case <-ticker.C:
+			passed := float64(time.Since(start))
+			percent := int(passed / totalTime * 100)
+			// as time.Duration is the unit of nanoseconds
+			// small duration can exceed 100 on slow machines
+			if percent > 100 {
+				continue
+			}
+			d.widgets.progressGauge.Percent(percent)
 		}
 	}
 }

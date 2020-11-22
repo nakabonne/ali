@@ -2,7 +2,6 @@ package gui
 
 import (
 	"context"
-	"time"
 
 	"github.com/mum4k/termdash/container"
 	"github.com/mum4k/termdash/keyboard"
@@ -50,11 +49,10 @@ func attack(ctx context.Context, d *drawer, target string, opts attacker.Options
 	if d.chartDrawing.Load() {
 		return
 	}
-	requestNum := opts.Rate * int(opts.Duration/time.Second)
 	d.doneCh = make(chan struct{})
 
 	// To initialize, run redrawChart on a per-attack basis.
-	go d.appendChartValues(ctx, requestNum)
+	go d.appendChartValues(ctx, opts.Rate, opts.Duration)
 	go d.redrawCharts(ctx)
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
 		attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o) // this blocks until attack finishes
