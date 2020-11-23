@@ -44,6 +44,7 @@ type Options struct {
 	HTTP2       bool
 	LocalAddr   net.IPAddr
 	Buckets     []time.Duration
+	Resolvers   []string
 
 	Attacker Attacker
 }
