@@ -84,6 +84,9 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 	if opts.LocalAddr.IP == nil {
 		opts.LocalAddr = DefaultLocalAddr
 	}
+	if len(opts.Resolvers) > 0 {
+		net.DefaultResolver = NewResolver(opts.Resolvers)
+	}
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
 			vegeta.Timeout(opts.Timeout),
