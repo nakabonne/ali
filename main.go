@@ -247,7 +247,7 @@ func parseResolvers(addrs string) ([]string, error) {
 	}
 
 	stringAddrs := strings.Split(addrs, ",")
-	var result []string
+	result := make([]string, 0, len(stringAddrs))
 
 	for _, addr := range stringAddrs {
 		trimmedAddr := strings.TrimSpace(addr)
