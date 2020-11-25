@@ -325,6 +325,33 @@ func TestMakeOptions(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "wrong format",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "1.2.3.4:1:1",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "wrong IP address",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "1111.2.3.4",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "wrong port number",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "192.168.11.1:65536",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
