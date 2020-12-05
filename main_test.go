@@ -60,6 +60,7 @@ func TestParseFlags(t *testing.T) {
 				stderr:       new(bytes.Buffer),
 				noHTTP2:      false,
 				localAddress: "0.0.0.0",
+				resolvers:    "",
 			},
 			wantErr: false,
 		},
@@ -300,6 +301,56 @@ func TestMakeOptions(t *testing.T) {
 				Buckets:    []time.Duration{},
 			},
 			wantErr: false,
+		},
+		{
+			name: "use custom DNS resolvers",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "1.2.3.4,192.168.11.1:53",
+			},
+			want: &attacker.Options{
+				Rate:       0,
+				Duration:   0,
+				Timeout:    0,
+				Method:     "GET",
+				Body:       []byte{},
+				Header:     http.Header{},
+				Workers:    0,
+				MaxWorkers: 0,
+				MaxBody:    0,
+				HTTP2:      true,
+				KeepAlive:  true,
+				Buckets:    []time.Duration{},
+				Resolvers:  []string{"1.2.3.4:53", "192.168.11.1:53"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "wrong format",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "1.2.3.4:1:1",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "wrong IP address",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "1111.2.3.4",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "wrong port number",
+			cli: &cli{
+				method:    "GET",
+				resolvers: "192.168.11.1:65536",
+			},
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

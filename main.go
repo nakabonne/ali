@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -46,6 +47,7 @@ type cli struct {
 	localAddress string
 	noKeepAlive  bool
 	buckets      string
+	resolvers    string
 
 	debug   bool
 	version bool
@@ -84,6 +86,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
+	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -186,6 +189,11 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		return nil, fmt.Errorf("wrong buckets format %w", err)
 	}
 
+	parsedResolvers, err := parseResolvers(c.resolvers)
+	if err != nil {
+		return nil, err
+	}
+
 	return &attacker.Options{
 		Rate:        c.rate,
 		Duration:    c.duration,
@@ -201,6 +209,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		HTTP2:       !c.noHTTP2,
 		LocalAddr:   localAddr,
 		Buckets:     parsedBuckets,
+		Resolvers:   parsedResolvers,
 	}, nil
 }
 
@@ -227,6 +236,44 @@ func parseBucketOptions(rawBuckets string) ([]time.Duration, error) {
 			return nil, err
 		}
 		result = append(result, d)
+	}
+
+	return result, nil
+}
+
+func parseResolvers(addrs string) ([]string, error) {
+	if addrs == "" {
+		return nil, nil
+	}
+
+	stringAddrs := strings.Split(addrs, ",")
+	result := make([]string, 0, len(stringAddrs))
+
+	for _, addr := range stringAddrs {
+		trimmedAddr := strings.TrimSpace(addr)
+
+		// if given address has no port, append "53"
+		if !strings.Contains(trimmedAddr, ":") {
+			trimmedAddr += ":53"
+		}
+
+		host, port, err := net.SplitHostPort(trimmedAddr)
+		if err != nil {
+			return nil, err
+		}
+
+		// validate port
+		_, err = strconv.ParseUint(port, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("port of given address %q has a wrong format", addr)
+		}
+
+		// validate IP
+		if ip := net.ParseIP(host); ip == nil {
+			return nil, fmt.Errorf("given address %q has a wrong format", addr)
+		}
+
+		result = append(result, trimmedAddr)
 	}
 
 	return result, nil
