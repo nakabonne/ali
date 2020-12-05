@@ -22,14 +22,14 @@ brew install nakabonne/ali/ali
 **Via APT**
 
 ```bash
-wget https://github.com/nakabonne/ali/releases/download/v0.5.3/ali_0.5.3_linux_amd64.deb
-apt install ./ali_0.5.3_linux_amd64.deb
+wget https://github.com/nakabonne/ali/releases/download/v0.5.4/ali_0.5.4_linux_amd64.deb
+apt install ./ali_0.5.4_linux_amd64.deb
 ```
 
 **Via RPM**
 
 ```bash
-rpm -ivh https://github.com/nakabonne/ali/releases/download/v0.5.3/ali_0.5.3_linux_amd64.rpm
+rpm -ivh https://github.com/nakabonne/ali/releases/download/v0.5.4/ali_0.5.4_linux_amd64.rpm
 ```
 
 **Via AUR**
@@ -82,6 +82,7 @@ Flags:
       --no-http2            Don't issue HTTP/2 requests to servers which support it.
   -K, --no-keepalive        Don't use HTTP persistent connection.
   -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
+      --resolvers string    Custom DNS resolver addresses; comma-separated list.
   -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
   -v, --version             Print the current version.
   -w, --workers uint        Amount of initial workers to spawn. (default 10)
