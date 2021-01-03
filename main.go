@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/k0kubun/pp"
 	flag "github.com/spf13/pflag"
 
 	"github.com/nakabonne/ali/attacker"
@@ -279,18 +280,35 @@ func parseResolvers(addrs string) ([]string, error) {
 	return result, nil
 }
 
-// Makes a new file under the working directory only when debug use.
+// Makes a new file under the ~/.config/ali only when debug use.
 func setDebug(w io.Writer, debug bool) {
 	if !debug {
-		pp.SetDefaultOutput(ioutil.Discard)
 		return
 	}
 	if w == nil {
-		var err error
-		w, err = os.OpenFile(filepath.Join(".", "ali-debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		dir, err := configDir()
+		if err != nil {
+			panic(err)
+		}
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			panic(err)
+		}
+		w, err = os.OpenFile(filepath.Join(dir, "debug.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 		if err != nil {
 			panic(err)
 		}
 	}
-	pp.SetDefaultOutput(w)
+	log.SetOutput(w)
+}
+
+func configDir() (string, error) {
+	usr, err := user.Current()
+	if err == nil {
+		return filepath.Join(usr.HomeDir, ".config", "ali"), nil
+	}
+	homeDir := os.Getenv("HOME")
+	if homeDir == "" {
+		return "", fmt.Errorf("unable to get current user home directory: os/user lookup failed; $HOME is empty")
+	}
+	return filepath.Join(homeDir, ".config", "ali"), nil
 }
