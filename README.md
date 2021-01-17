@@ -32,11 +32,10 @@ apt install ./ali_0.5.4_linux_amd64.deb
 rpm -ivh https://github.com/nakabonne/ali/releases/download/v0.5.4/ali_0.5.4_linux_amd64.rpm
 ```
 
-**Via AUR**
+**Via Pacman**
 
-Thanks to [orhun](https://github.com/orhun), it's available as [ali](https://aur.archlinux.org/packages/ali) in the Arch User Repository.
 ```bash
-yay -S ali
+pacman -S ali
 ```
 
 **Via Go**
