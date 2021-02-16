@@ -52,8 +52,7 @@ func attack(ctx context.Context, d *drawer, target string, opts attacker.Options
 	d.doneCh = make(chan struct{})
 
 	// To initialize, run redrawChart on a per-attack basis.
-	go d.appendChartValues(ctx, opts.Rate, opts.Duration)
-	go d.redrawCharts(ctx)
+	go d.redrawCharts(ctx, opts.Rate, opts.Duration)
 	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
 		attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o) // this blocks until attack finishes
 		close(d.doneCh)

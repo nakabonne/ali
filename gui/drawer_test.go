@@ -77,71 +77,10 @@ func TestAppendChartValues(t *testing.T) {
 				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
 			}
-			go d.appendChartValues(ctx, len(tt.results), tt.duration)
+			go d.redrawCharts(ctx, len(tt.results), tt.duration)
 			for _, res := range tt.results {
 				d.chartCh <- res
 			}
-			close(d.doneCh)
-		})
-	}
-}
-
-func TestRedrawCharts(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	tests := []struct {
-		name             string
-		latencyChart     LineChart
-		percentilesChart LineChart
-		latencies        []float64
-		p50              []float64
-		p90              []float64
-		p95              []float64
-		p99              []float64
-	}{
-		{
-			name:      "one result received",
-			latencies: []float64{1},
-			p50:       []float64{0.5},
-			p90:       []float64{0.9},
-			p95:       []float64{0.95},
-			p99:       []float64{0.99},
-			latencyChart: func() LineChart {
-				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any()).AnyTimes()
-				return l
-			}(),
-			percentilesChart: func() LineChart {
-				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()).AnyTimes()
-				return l
-			}(),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &drawer{
-				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
-				chartCh:      make(chan *attacker.Result),
-				doneCh:       make(chan struct{}),
-				chartDrawing: atomic.NewBool(false),
-				chartValues: values{
-					latencies: tt.latencies,
-					p50:       tt.p50,
-					p90:       tt.p90,
-					p95:       tt.p95,
-					p99:       tt.p99,
-				},
-			}
-			go d.redrawCharts(ctx)
 			close(d.doneCh)
 		})
 	}
@@ -294,7 +233,6 @@ End: 2009-11-10T23:00:00Z`, gomock.Any()).AnyTimes()
 					statusCodesText: tt.statusCodesText,
 					errorsText:      tt.errorsText,
 				},
-				metrics: tt.metrics,
 			}
 			go d.redrawMetrics(ctx)
 			time.Sleep(1 * time.Second)

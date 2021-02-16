@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/mum4k/termdash/cell"
@@ -28,10 +27,6 @@ type drawer struct {
 
 	// aims to avoid to perform multiple `appendChartValues`.
 	chartDrawing *atomic.Bool
-
-	mu          sync.RWMutex
-	chartValues values
-	metrics     *attacker.Metrics
 }
 
 type values struct {
@@ -42,9 +37,8 @@ type values struct {
 	p99       []float64
 }
 
-// appendChartValues appends entities as soon as a result arrives.
-// Given maxSize, then it can be pre-allocated.
-func (d *drawer) appendChartValues(ctx context.Context, rate int, duration time.Duration) {
+// redrawCharts redraw chart values at the specified interval as redrawInterval.
+func (d *drawer) redrawCharts(ctx context.Context, rate int, duration time.Duration) {
 	// TODO: Change how to stop `redrawGauge`.
 	// We currently use this way to ensure to stop `redrawGauge` after the increase process is complete.
 	// But, it's preferable to stop goroutine where it's generated.
@@ -52,17 +46,21 @@ func (d *drawer) appendChartValues(ctx context.Context, rate int, duration time.
 	child, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go d.redrawGauge(child, duration)
+	ticker := time.NewTicker(redrawInterval)
+	defer ticker.Stop()
 
-	d.chartValues.latencies = make([]float64, 0, maxSize)
-	d.chartValues.p50 = make([]float64, 0, maxSize)
-	d.chartValues.p90 = make([]float64, 0, maxSize)
-	d.chartValues.p95 = make([]float64, 0, maxSize)
-	d.chartValues.p99 = make([]float64, 0, maxSize)
+	chartValues := &values{
+		latencies: make([]float64, 0, maxSize),
+		p50:       make([]float64, 0, maxSize),
+		p90:       make([]float64, 0, maxSize),
+		p95:       make([]float64, 0, maxSize),
+		p99:       make([]float64, 0, maxSize),
+	}
 
 	appendValue := func(to []float64, val time.Duration) []float64 {
 		return append(to, float64(val)/float64(time.Millisecond))
 	}
-
+	d.chartDrawing.Store(true)
 L:
 	for {
 		select {
@@ -74,48 +72,28 @@ L:
 			if res == nil {
 				continue
 			}
-
-			d.mu.Lock()
-			d.chartValues.latencies = appendValue(d.chartValues.latencies, res.Latency)
-			d.chartValues.p50 = appendValue(d.chartValues.p50, res.P50)
-			d.chartValues.p90 = appendValue(d.chartValues.p90, res.P90)
-			d.chartValues.p95 = appendValue(d.chartValues.p95, res.P95)
-			d.chartValues.p99 = appendValue(d.chartValues.p99, res.P99)
-			d.mu.Unlock()
-		}
-	}
-}
-
-// redrawCharts sets the values held by itself as chart values, at the specified interval as redrawInterval.
-func (d *drawer) redrawCharts(ctx context.Context) {
-	ticker := time.NewTicker(redrawInterval)
-	defer ticker.Stop()
-
-	d.chartDrawing.Store(true)
-L:
-	for {
-		select {
-		case <-ctx.Done():
-			break L
-		case <-d.doneCh:
-			break L
+			chartValues.latencies = appendValue(chartValues.latencies, res.Latency)
+			chartValues.p50 = appendValue(chartValues.p50, res.P50)
+			chartValues.p90 = appendValue(chartValues.p90, res.P90)
+			chartValues.p95 = appendValue(chartValues.p95, res.P95)
+			chartValues.p99 = appendValue(chartValues.p99, res.P99)
 		case <-ticker.C:
-			d.widgets.latencyChart.Series("latency", d.chartValues.latencies,
+			d.widgets.latencyChart.Series("latency", chartValues.latencies,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
 					0: "req",
 				}),
 			)
-			d.widgets.percentilesChart.Series("p50", d.chartValues.p50,
+			d.widgets.percentilesChart.Series("p50", chartValues.p50,
 				linechart.SeriesCellOpts(d.widgets.p50Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p90", d.chartValues.p90,
+			d.widgets.percentilesChart.Series("p90", chartValues.p90,
 				linechart.SeriesCellOpts(d.widgets.p90Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p95", d.chartValues.p95,
+			d.widgets.percentilesChart.Series("p95", chartValues.p95,
 				linechart.SeriesCellOpts(d.widgets.p95Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p99", d.chartValues.p99,
+			d.widgets.percentilesChart.Series("p99", chartValues.p99,
 				linechart.SeriesCellOpts(d.widgets.p99Legend.cellOpts...),
 			)
 		}
@@ -180,15 +158,17 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 	ticker := time.NewTicker(redrawInterval)
 	defer ticker.Stop()
 
+	var m *attacker.Metrics
 	for {
 		select {
 		case <-ctx.Done():
 			return
+		case metrics := <-d.metricsCh:
+			m = metrics
 		case <-ticker.C:
-			d.mu.RLock()
-			m := *d.metrics
-			d.mu.RUnlock()
-
+			if m == nil {
+				continue
+			}
 			d.widgets.latenciesText.Write(
 				fmt.Sprintf(latenciesTextFormat,
 					m.Latencies.Total,
@@ -241,22 +221,6 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 `, e)
 			}
 			d.widgets.errorsText.Write(errorsText, text.WriteReplace())
-		}
-	}
-}
-
-func (d *drawer) updateMetrics(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case metrics := <-d.metricsCh:
-			if metrics == nil {
-				continue
-			}
-			d.mu.Lock()
-			d.metrics = metrics
-			d.mu.Unlock()
 		}
 	}
 }

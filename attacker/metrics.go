@@ -68,8 +68,8 @@ type ByteMetrics struct {
 	Mean float64 `json:"mean"`
 }
 
-func newMetrics(m *vegeta.Metrics) *Metrics {
-	return &Metrics{
+func cloneMetrics(m *vegeta.Metrics) *Metrics {
+	dummy := &Metrics{
 		Latencies: LatencyMetrics{
 			Total: m.Latencies.Total,
 			Mean:  m.Latencies.Mean,
@@ -98,7 +98,12 @@ func newMetrics(m *vegeta.Metrics) *Metrics {
 		Rate:        m.Rate,
 		Throughput:  m.Throughput,
 		Success:     m.Success,
-		StatusCodes: m.StatusCodes,
-		Errors:      m.Errors,
+		StatusCodes: make(map[string]int, len(m.StatusCodes)),
+		Errors:      append(make([]string, 0, len(m.Errors)), m.Errors...),
 	}
+	// deep copy of 'StatusCodes'
+	for k, v := range m.StatusCodes {
+		dummy.StatusCodes[k] = v
+	}
+	return dummy
 }

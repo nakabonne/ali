@@ -69,11 +69,9 @@ func run(t terminalapi.Terminal, r runner, targetURL string, opts *attacker.Opti
 		widgets:      w,
 		gridOpts:     gridOpts,
 		chartCh:      make(chan *attacker.Result, 10000),
-		metricsCh:    make(chan *attacker.Metrics),
+		metricsCh:    make(chan *attacker.Metrics, 1),
 		chartDrawing: atomic.NewBool(false),
-		metrics:      &attacker.Metrics{},
 	}
-	go d.updateMetrics(ctx)
 	go d.redrawMetrics(ctx)
 
 	k := keybinds(ctx, cancel, c, d, targetURL, *opts)

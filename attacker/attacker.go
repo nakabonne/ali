@@ -120,7 +120,7 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 			return
 		default:
 			metrics.Add(res)
-			m := newMetrics(metrics)
+			m := cloneMetrics(metrics)
 			resCh <- &Result{
 				Latency: res.Latency,
 				P50:     m.Latencies.P50,
@@ -132,5 +132,5 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(metrics)
+	metricsCh <- cloneMetrics(metrics)
 }
