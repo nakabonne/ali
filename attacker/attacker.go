@@ -2,9 +2,16 @@ package attacker
 
 import (
 	"context"
+	"io/ioutil"
+	"log"
 	"math"
+	"math/rand"
 	"net"
 	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -45,8 +52,8 @@ type Options struct {
 	LocalAddr   net.IPAddr
 	Buckets     []time.Duration
 	Resolvers   []string
-
-	Attacker Attacker
+	Variables   [][]string
+	Attacker    Attacker
 }
 
 // Result contains the results of a single HTTP request.
@@ -100,13 +107,24 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 		)
 	}
 
+	var targeter vegeta.Targeter
 	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
-	targeter := vegeta.NewStaticTargeter(vegeta.Target{
-		Method: opts.Method,
-		URL:    target,
-		Body:   opts.Body,
-		Header: opts.Header,
-	})
+	if opts.Variables == nil {
+		targeter = vegeta.NewStaticTargeter(vegeta.Target{
+			Method: opts.Method,
+			URL:    target,
+			Body:   opts.Body,
+			Header: opts.Header,
+		})
+	} else {
+		tmpURLfile, err := ioutil.TempFile("", "ali-")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer os.Remove(tmpURLfile.Name())
+		buildTmpURLFile(tmpURLfile, target, int(opts.Duration/time.Second)*opts.Rate, opts.Variables)
+		targeter = vegeta.NewHTTPTargeter(tmpURLfile, opts.Body, opts.Header)
+	}
 
 	metrics := &vegeta.Metrics{}
 	if len(opts.Buckets) > 0 {
@@ -133,4 +151,20 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 	}
 	metrics.Close()
 	metricsCh <- newMetrics(metrics)
+}
+
+func buildTmpURLFile(tmpURLfile *os.File, target string, reqCount int, variables [][]string) {
+	pattern := regexp.MustCompile(`\$\{\d{1,4}\}`)
+	for z := 0; z < reqCount; z++ {
+		tmpUrl := target
+		for _, submatches := range pattern.FindAllSubmatchIndex([]byte(target), -1) {
+			i, _ := strconv.Atoi(target[submatches[0]+2 : submatches[1]-1])
+			if len(variables) >= i {
+				rndValue := variables[i-1][rand.Intn(len(variables[i-1]))]
+				tmpUrl = strings.ReplaceAll(tmpUrl, target[submatches[0]:submatches[1]], rndValue)
+			}
+		}
+		tmpURLfile.WriteString(tmpUrl + "\n")
+	}
+	tmpURLfile.Seek(0, 0)
 }

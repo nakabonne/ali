@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -49,11 +50,11 @@ type cli struct {
 	noKeepAlive  bool
 	buckets      string
 	resolvers    string
-
-	debug   bool
-	version bool
-	stdout  io.Writer
-	stderr  io.Writer
+	variables    string
+	debug        bool
+	version      bool
+	stdout       io.Writer
+	stderr       io.Writer
 }
 
 func main() {
@@ -87,7 +88,8 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
-	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
+	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DN2 resolver addresses; comma-separated list.")
+	flagSet.StringVar(&c.variables, "variables", "", "Files for Variables; comma-separated list.")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -195,6 +197,11 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		return nil, err
 	}
 
+	loadedVariablesValues, err := parseVariables(c.variables)
+	if err != nil {
+		return nil, err
+	}
+
 	return &attacker.Options{
 		Rate:        c.rate,
 		Duration:    c.duration,
@@ -211,6 +218,7 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		LocalAddr:   localAddr,
 		Buckets:     parsedBuckets,
 		Resolvers:   parsedResolvers,
+		Variables:   loadedVariablesValues,
 	}, nil
 }
 
@@ -278,6 +286,39 @@ func parseResolvers(addrs string) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+func parseVariables(vars string) ([][]string, error) {
+	if vars == "" {
+		return nil, nil
+	}
+
+	stringAddrs := strings.Split(vars, ",")
+	result := make([][]string, 0, len(stringAddrs))
+
+	for _, file := range stringAddrs {
+		values, err := readLines(file)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, values)
+	}
+	return result, nil
+}
+
+func readLines(path string) ([]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
 
 // Makes a new file under the ~/.config/ali only when debug use.

@@ -1,4 +1,7 @@
 # ali
+
+## Dynamic URLs via --variables Options added
+
 [![codecov.io Code Coverage](https://img.shields.io/codecov/c/github/nakabonne/ali.svg)](https://codecov.io/github/nakabonne/ali?branch=master)
 [![Release](https://img.shields.io/github/release/nakabonne/ali.svg?color=orange)](https://github.com/nakabonne/ali/releases/latest)
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/nakabonne/ali)
@@ -82,6 +85,7 @@ Flags:
   -K, --no-keepalive        Don't use HTTP persistent connection.
   -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
       --resolvers string    Custom DNS resolver addresses; comma-separated list.
+      --variables string    Files with Values that are randomly replaced in the URL; comma-separated list.
   -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
   -v, --version             Print the current version.
   -w, --workers uint        Amount of initial workers to spawn. (default 10)
@@ -108,6 +112,14 @@ For an attack with the POST method:
 ```bash
 ali --body-file=/path/to/foo.json --method=POST http://host.xz
 ```
+
+Usage with Variables:
+
+```bash
+ali --rate=500 --variables var1.txt,var2.txt --duration=5m http://host.xz/${1]}?${2}
+```
+Will result in random combinations Urls. The Variable ${1} will be replaces will values from file var1.txt and the Variable ${2} will be replaced with values from file var2.txt
+URL's like 'http://host.xz/${1]}?${2}&file=${1}' are also possible ${1} will be the same value.
 
 ### Charts
 Press `l` (or `h`) to switch the displayed chart. On all charts, you can click and drag to select a region to zoom into.
