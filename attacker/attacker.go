@@ -2,6 +2,8 @@ package attacker
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"math"
 	"net"
 	"net/http"
@@ -46,6 +48,10 @@ type Options struct {
 	Buckets     []time.Duration
 	Resolvers   []string
 
+	InsecureSkipVerify bool
+	CACertificatePool  *x509.CertPool
+	TLSCertificates    []tls.Certificate
+
 	Attacker Attacker
 }
 
@@ -87,6 +93,14 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 	if len(opts.Resolvers) > 0 {
 		net.DefaultResolver = NewResolver(opts.Resolvers)
 	}
+
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: opts.InsecureSkipVerify,
+		Certificates:       opts.TLSCertificates,
+		RootCAs:            opts.CACertificatePool,
+	}
+	tlsConfig.BuildNameToCertificate()
+
 	if opts.Attacker == nil {
 		opts.Attacker = vegeta.NewAttacker(
 			vegeta.Timeout(opts.Timeout),
@@ -97,6 +111,7 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 			vegeta.KeepAlive(opts.KeepAlive),
 			vegeta.HTTP2(opts.HTTP2),
 			vegeta.LocalAddr(opts.LocalAddr),
+			vegeta.TLSConfig(tlsConfig),
 		)
 	}
 
