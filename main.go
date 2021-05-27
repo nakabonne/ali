@@ -216,8 +216,9 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		certs = append(certs, cert)
 	}
 
-	caCertPool := x509.NewCertPool()
+	var caCertPool *x509.CertPool
 	if c.caCert != "" {
+		caCertPool = x509.NewCertPool()
 		caCert, err := ioutil.ReadFile(c.caCert)
 		if err != nil {
 			log.Fatal(err)
