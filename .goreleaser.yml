@@ -41,7 +41,7 @@ changelog:
     - '^test:'
 
 brews:
-  - github:
+  - tap:
       owner: nakabonne
       name: homebrew-ali
     homepage: 'https://github.com/nakabonne/ali'
