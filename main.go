@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -50,6 +52,11 @@ type cli struct {
 	buckets      string
 	resolvers    string
 
+	insecureSkipVerify bool
+	tlsCertFile        string
+	tlsKeyFile         string
+	caCert             string
+
 	debug   bool
 	version bool
 	stdout  io.Writer
@@ -85,6 +92,10 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.IntVarP(&c.connections, "connections", "c", attacker.DefaultConnections, "Amount of maximum open idle connections per target host")
 	flagSet.BoolVar(&c.noHTTP2, "no-http2", false, "Don't issue HTTP/2 requests to servers which support it.")
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
+	flagSet.BoolVar(&c.insecureSkipVerify, "insecure", false, "Skip TLS verification")
+	flagSet.StringVar(&c.caCert, "cacert", "", "PEM ca certificate file")
+	flagSet.StringVar(&c.tlsCertFile, "cert", "", "PEM encoded tls certificate file to use")
+	flagSet.StringVar(&c.tlsKeyFile, "key", "", "PEM encoded tls private key file to use")
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
@@ -195,22 +206,45 @@ func (c *cli) makeOptions() (*attacker.Options, error) {
 		return nil, err
 	}
 
+	var certs []tls.Certificate
+	if c.tlsCertFile != "" && c.tlsKeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(c.tlsCertFile, c.tlsKeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("error loading PEM key pair %w", err)
+		}
+
+		certs = append(certs, cert)
+	}
+
+	var caCertPool *x509.CertPool
+	if c.caCert != "" {
+		caCertPool = x509.NewCertPool()
+		caCert, err := ioutil.ReadFile(c.caCert)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool.AppendCertsFromPEM(caCert)
+	}
+
 	return &attacker.Options{
-		Rate:        c.rate,
-		Duration:    c.duration,
-		Timeout:     c.timeout,
-		Method:      c.method,
-		Body:        body,
-		MaxBody:     c.maxBody,
-		Header:      header,
-		KeepAlive:   !c.noKeepAlive,
-		Workers:     c.workers,
-		MaxWorkers:  c.maxWorkers,
-		Connections: c.connections,
-		HTTP2:       !c.noHTTP2,
-		LocalAddr:   localAddr,
-		Buckets:     parsedBuckets,
-		Resolvers:   parsedResolvers,
+		Rate:               c.rate,
+		Duration:           c.duration,
+		Timeout:            c.timeout,
+		Method:             c.method,
+		Body:               body,
+		MaxBody:            c.maxBody,
+		Header:             header,
+		KeepAlive:          !c.noKeepAlive,
+		Workers:            c.workers,
+		MaxWorkers:         c.maxWorkers,
+		Connections:        c.connections,
+		HTTP2:              !c.noHTTP2,
+		LocalAddr:          localAddr,
+		Buckets:            parsedBuckets,
+		Resolvers:          parsedResolvers,
+		InsecureSkipVerify: c.insecureSkipVerify,
+		TLSCertificates:    certs,
+		CACertificatePool:  caCertPool,
 	}, nil
 }
 
