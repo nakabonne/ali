@@ -16,9 +16,6 @@ func TestRedrawCharts(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	tests := []struct {
 		name             string
 		storage          storage.Reader
@@ -46,14 +43,14 @@ func TestRedrawCharts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
 			d := &drawer{
 				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
-				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
 				storage:      tt.storage,
 			}
 			go d.redrawCharts(ctx)
-			close(d.doneCh)
 		})
 	}
 }
