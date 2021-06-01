@@ -21,10 +21,10 @@ import (
 
 const (
 	// How often termdash redraws the screen.
-	redrawInterval    = 250 * time.Millisecond
-	DefaultQueryRange = 30 * time.Second
-	rootID            = "root"
-	chartID           = "chart"
+	DefaultRedrawInterval = 250 * time.Millisecond
+	DefaultQueryRange     = 30 * time.Second
+	rootID                = "root"
+	chartID               = "chart"
 )
 
 type Option struct {
@@ -74,22 +74,26 @@ func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Rea
 	if opts.QueryRange == 0 {
 		opts.QueryRange = DefaultQueryRange
 	}
+	if opts.RedrawInternal == 0 {
+		opts.RedrawInternal = DefaultRedrawInterval
+	}
 
 	d := &drawer{
-		queryRange:   opts.QueryRange,
-		widgets:      w,
-		gridOpts:     gridOpts,
-		metricsCh:    make(chan *attacker.Metrics),
-		chartDrawing: atomic.NewBool(false),
-		metrics:      &attacker.Metrics{},
-		storage:      storage,
+		queryRange:     opts.QueryRange,
+		redrawInterval: opts.RedrawInternal,
+		widgets:        w,
+		gridOpts:       gridOpts,
+		metricsCh:      make(chan *attacker.Metrics),
+		chartDrawing:   atomic.NewBool(false),
+		metrics:        &attacker.Metrics{},
+		storage:        storage,
 	}
 	go d.updateMetrics(ctx)
 	go d.redrawMetrics(ctx)
 
 	k := keybinds(ctx, cancel, c, d, a)
 
-	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(redrawInterval))
+	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(opts.RedrawInternal))
 }
 
 // newChartWithLegends creates a chart with legends at the bottom.

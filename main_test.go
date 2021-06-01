@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"math"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -46,22 +48,23 @@ func TestParseFlags(t *testing.T) {
 		{
 			name: "with default options",
 			want: &cli{
-				rate:         50,
-				duration:     time.Second * 10,
-				timeout:      time.Second * 30,
-				method:       "GET",
-				headers:      []string{},
-				maxBody:      -1,
-				noKeepAlive:  false,
-				workers:      10,
-				maxWorkers:   math.MaxUint64,
-				connections:  10000,
-				stdout:       new(bytes.Buffer),
-				stderr:       new(bytes.Buffer),
-				noHTTP2:      false,
-				localAddress: "0.0.0.0",
-				resolvers:    "",
-				queryRange:   30 * time.Second,
+				rate:           50,
+				duration:       time.Second * 10,
+				timeout:        time.Second * 30,
+				method:         "GET",
+				headers:        []string{},
+				maxBody:        -1,
+				noKeepAlive:    false,
+				workers:        10,
+				maxWorkers:     math.MaxUint64,
+				connections:    10000,
+				stdout:         new(bytes.Buffer),
+				stderr:         new(bytes.Buffer),
+				noHTTP2:        false,
+				localAddress:   "0.0.0.0",
+				resolvers:      "",
+				queryRange:     30 * time.Second,
+				redrawInterval: 250 * time.Millisecond,
 			},
 			wantErr: false,
 		},
@@ -367,19 +370,28 @@ func TestSetDebug(t *testing.T) {
 	tests := []struct {
 		name  string
 		debug bool
+		input string
+		want  string
 	}{
 		{
 			name:  "in non-debug use",
 			debug: false,
+			input: "text",
+			want:  "",
 		},
 		{
 			name:  "in debug use",
 			debug: true,
+			input: "text",
+			want:  "text",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setDebug(nil, tt.debug)
+			b := &bytes.Buffer{}
+			setDebug(b, tt.debug)
+			log.Print(tt.input)
+			assert.Equal(t, true, strings.Contains(b.String(), tt.want))
 		})
 	}
 }

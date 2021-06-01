@@ -46,9 +46,10 @@ func TestRedrawCharts(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 			d := &drawer{
-				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
-				chartDrawing: atomic.NewBool(false),
-				storage:      tt.storage,
+				redrawInterval: DefaultRedrawInterval,
+				widgets:        &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
+				chartDrawing:   atomic.NewBool(false),
+				storage:        tt.storage,
 			}
 			go d.redrawCharts(ctx)
 		})
@@ -83,7 +84,8 @@ func TestRedrawGauge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
-				widgets: &widgets{progressGauge: tt.gauge},
+				redrawInterval: DefaultRedrawInterval,
+				widgets:        &widgets{progressGauge: tt.gauge},
 			}
 			go d.redrawGauge(ctx, tt.size)
 		})
@@ -195,6 +197,7 @@ End: 2009-11-10T23:00:00Z`, gomock.Any()).AnyTimes()
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			d := &drawer{
+				redrawInterval: DefaultRedrawInterval,
 				widgets: &widgets{
 					latenciesText:   tt.latenciesText,
 					bytesText:       tt.bytesText,

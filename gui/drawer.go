@@ -20,9 +20,10 @@ import (
 // drawer periodically queries data points from the storage and passes them to the termdash API.
 type drawer struct {
 	// specify the data points range to show on the UI
-	queryRange time.Duration
-	widgets    *widgets
-	gridOpts   *gridOpts
+	queryRange     time.Duration
+	redrawInterval time.Duration
+	widgets        *widgets
+	gridOpts       *gridOpts
 
 	metricsCh chan *attacker.Metrics
 
@@ -36,7 +37,7 @@ type drawer struct {
 
 // redrawCharts sets the values held by itself as chart values, at the specified interval as redrawInterval.
 func (d *drawer) redrawCharts(ctx context.Context) {
-	ticker := time.NewTicker(redrawInterval)
+	ticker := time.NewTicker(d.redrawInterval)
 	defer ticker.Stop()
 
 	d.chartDrawing.Store(true)
@@ -97,7 +98,7 @@ L:
 }
 
 func (d *drawer) redrawGauge(ctx context.Context, duration time.Duration) {
-	ticker := time.NewTicker(redrawInterval)
+	ticker := time.NewTicker(d.redrawInterval)
 	defer ticker.Stop()
 
 	totalTime := float64(duration)
@@ -150,7 +151,7 @@ End: %v`
 
 // redrawMetrics writes the metrics held by itself into the widgets, at the specified interval as redrawInterval.
 func (d *drawer) redrawMetrics(ctx context.Context) {
-	ticker := time.NewTicker(redrawInterval)
+	ticker := time.NewTicker(d.redrawInterval)
 	defer ticker.Stop()
 
 	for {
