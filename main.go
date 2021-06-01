@@ -106,7 +106,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
 	flagSet.DurationVar(&c.queryRange, "query-range", gui.DefaultQueryRange, "The results within the given time range will be drawn on the charts")
-	flagSet.DurationVar(&c.redrawInterval, "redraw-interval", gui.DefaultRedrawInterval, "The time interval to redraw charts")
+	flagSet.DurationVar(&c.redrawInterval, "redraw-interval", gui.DefaultRedrawInterval, "Specify how often it redraws the screen")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -133,7 +133,7 @@ func (c *cli) run(args []string) int {
 		c.usage()
 		return 1
 	}
-	opts, err := c.makeOptions()
+	opts, err := c.makeAttackerOptions()
 	if err != nil {
 		fmt.Fprintln(c.stderr, err.Error())
 		c.usage()
@@ -156,7 +156,7 @@ func (c *cli) run(args []string) int {
 	setDebug(nil, c.debug)
 
 	if err := gui.Run(target, s, a,
-		gui.Option{
+		gui.Options{
 			QueryRange:     c.queryRange,
 			RedrawInternal: c.redrawInterval,
 		},
@@ -183,8 +183,8 @@ Author:
 	fmt.Fprintf(c.stderr, format, flagSet.FlagUsages())
 }
 
-// makeOptions gives back an options for attacker, with the CLI input.
-func (c *cli) makeOptions() (*attacker.Options, error) {
+// makeAttackerOptions gives back an options for attacker, with the CLI input.
+func (c *cli) makeAttackerOptions() (*attacker.Options, error) {
 	if !validateMethod(c.method) {
 		return nil, fmt.Errorf("given method %q isn't an HTTP request method", c.method)
 	}

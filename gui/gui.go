@@ -20,21 +20,21 @@ import (
 )
 
 const (
-	// How often termdash redraws the screen.
-	DefaultRedrawInterval = 250 * time.Millisecond
 	DefaultQueryRange     = 30 * time.Second
+	DefaultRedrawInterval = 250 * time.Millisecond
+	minRedrawInterval     = 100 * time.Millisecond
 	rootID                = "root"
 	chartID               = "chart"
 )
 
-type Option struct {
+type Options struct {
 	RedrawInternal time.Duration
 	QueryRange     time.Duration
 }
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
-func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, opts Option) error {
+func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, opts Options) error {
 	var (
 		t   terminalapi.Terminal
 		err error
@@ -51,7 +51,7 @@ func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, o
 	return run(t, termdash.Run, targetURL, storage, attacker, opts)
 }
 
-func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Reader, a attacker.Attacker, opts Option) error {
+func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Reader, a attacker.Attacker, opts Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -76,6 +76,9 @@ func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Rea
 	}
 	if opts.RedrawInternal == 0 {
 		opts.RedrawInternal = DefaultRedrawInterval
+	}
+	if opts.RedrawInternal < minRedrawInterval {
+		return fmt.Errorf("redrawInterval must be greater than %s", minRedrawInterval)
 	}
 
 	d := &drawer{

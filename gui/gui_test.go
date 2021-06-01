@@ -43,7 +43,7 @@ func TestRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := run(&termbox.Terminal{}, tt.runner, "", &storage.FakeStorage{}, &attacker.FakeAttacker{}, Option{})
+			err := run(&termbox.Terminal{}, tt.runner, "", &storage.FakeStorage{}, &attacker.FakeAttacker{}, Options{})
 			assert.Equal(t, tt.wantErr, err != nil)
 		})
 	}
