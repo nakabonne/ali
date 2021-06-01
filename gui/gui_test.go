@@ -13,6 +13,7 @@ import (
 	"go.uber.org/goleak"
 
 	"github.com/nakabonne/ali/attacker"
+	"github.com/nakabonne/ali/storage"
 )
 
 func TestMain(m *testing.M) {
@@ -22,19 +23,19 @@ func TestMain(m *testing.M) {
 func TestRun(t *testing.T) {
 	tests := []struct {
 		name    string
-		r       runner
+		runner  runner
 		wantErr bool
 	}{
 		{
 			name: "successful running",
-			r: func(context.Context, terminalapi.Terminal, *container.Container, ...termdash.Option) error {
+			runner: func(context.Context, terminalapi.Terminal, *container.Container, ...termdash.Option) error {
 				return nil
 			},
 			wantErr: false,
 		},
 		{
 			name: "failed running",
-			r: func(context.Context, terminalapi.Terminal, *container.Container, ...termdash.Option) error {
+			runner: func(context.Context, terminalapi.Terminal, *container.Container, ...termdash.Option) error {
 				return fmt.Errorf("error")
 			},
 			wantErr: true,
@@ -42,7 +43,7 @@ func TestRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := run(&termbox.Terminal{}, tt.r, "", &attacker.Options{})
+			err := run(&termbox.Terminal{}, tt.runner, "", &storage.FakeStorage{}, &attacker.FakeAttacker{}, Option{})
 			assert.Equal(t, tt.wantErr, err != nil)
 		})
 	}

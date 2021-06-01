@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 	"time"
@@ -13,77 +14,24 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
+	"github.com/nakabonne/ali/storage"
 )
 
-// drawer buffers the result values because calling the termdash API
-// whenever itreceives a result would create a bottleneck.
-// To draw them, it periodically passes those values to the termdash API.
+// drawer periodically queries data points from the storage and passes them to the termdash API.
 type drawer struct {
-	widgets  *widgets
-	gridOpts *gridOpts
+	// specify the data points range to show on the UI
+	queryRange time.Duration
+	widgets    *widgets
+	gridOpts   *gridOpts
 
-	chartCh   chan *attacker.Result
 	metricsCh chan *attacker.Metrics
-	doneCh    chan struct{}
 
 	// aims to avoid to perform multiple `appendChartValues`.
 	chartDrawing *atomic.Bool
 
-	mu          sync.RWMutex
-	chartValues values
-	metrics     *attacker.Metrics
-}
-
-type values struct {
-	latencies []float64
-	p50       []float64
-	p90       []float64
-	p95       []float64
-	p99       []float64
-}
-
-// appendChartValues appends entities as soon as a result arrives.
-// Given maxSize, then it can be pre-allocated.
-func (d *drawer) appendChartValues(ctx context.Context, rate int, duration time.Duration) {
-	// TODO: Change how to stop `redrawGauge`.
-	// We currently use this way to ensure to stop `redrawGauge` after the increase process is complete.
-	// But, it's preferable to stop goroutine where it's generated.
-	maxSize := rate * int(duration/time.Second)
-	child, cancel := context.WithCancel(ctx)
-	defer cancel()
-	go d.redrawGauge(child, duration)
-
-	d.chartValues.latencies = make([]float64, 0, maxSize)
-	d.chartValues.p50 = make([]float64, 0, maxSize)
-	d.chartValues.p90 = make([]float64, 0, maxSize)
-	d.chartValues.p95 = make([]float64, 0, maxSize)
-	d.chartValues.p99 = make([]float64, 0, maxSize)
-
-	appendValue := func(to []float64, val time.Duration) []float64 {
-		return append(to, float64(val)/float64(time.Millisecond))
-	}
-
-L:
-	for {
-		select {
-		case <-ctx.Done():
-			break L
-		case <-d.doneCh:
-			break L
-		case res := <-d.chartCh:
-			if res == nil {
-				continue
-			}
-
-			d.mu.Lock()
-			d.chartValues.latencies = appendValue(d.chartValues.latencies, res.Latency)
-			d.chartValues.p50 = appendValue(d.chartValues.p50, res.P50)
-			d.chartValues.p90 = appendValue(d.chartValues.p90, res.P90)
-			d.chartValues.p95 = appendValue(d.chartValues.p95, res.P95)
-			d.chartValues.p99 = appendValue(d.chartValues.p99, res.P99)
-			d.mu.Unlock()
-		}
-	}
+	mu      sync.RWMutex
+	metrics *attacker.Metrics
+	storage storage.Reader
 }
 
 // redrawCharts sets the values held by itself as chart values, at the specified interval as redrawInterval.
@@ -97,25 +45,50 @@ L:
 		select {
 		case <-ctx.Done():
 			break L
-		case <-d.doneCh:
-			break L
 		case <-ticker.C:
-			d.widgets.latencyChart.Series("latency", d.chartValues.latencies,
+			end := time.Now()
+			start := end.Add(-d.queryRange)
+
+			latencies, err := d.storage.Select(storage.LatencyMetricName, start, end)
+			if err != nil {
+				log.Printf("failed to select latency data points: %v\n", err)
+			}
+			d.widgets.latencyChart.Series("latency", latencies,
 				linechart.SeriesCellOpts(cell.FgColor(cell.ColorNumber(87))),
 				linechart.SeriesXLabels(map[int]string{
 					0: "req",
 				}),
 			)
-			d.widgets.percentilesChart.Series("p50", d.chartValues.p50,
+
+			p50, err := d.storage.Select(storage.P50MetricName, start, end)
+			if err != nil {
+				log.Printf("failed to select p50 data points: %v\n", err)
+			}
+			d.widgets.percentilesChart.Series("p50", p50,
 				linechart.SeriesCellOpts(d.widgets.p50Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p90", d.chartValues.p90,
+
+			p90, err := d.storage.Select(storage.P90MetricName, start, end)
+			if err != nil {
+				log.Printf("failed to select p90 data points: %v\n", err)
+			}
+			d.widgets.percentilesChart.Series("p90", p90,
 				linechart.SeriesCellOpts(d.widgets.p90Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p95", d.chartValues.p95,
+
+			p95, err := d.storage.Select(storage.P95MetricName, start, end)
+			if err != nil {
+				log.Printf("failed to select p95 data points: %v\n", err)
+			}
+			d.widgets.percentilesChart.Series("p95", p95,
 				linechart.SeriesCellOpts(d.widgets.p95Legend.cellOpts...),
 			)
-			d.widgets.percentilesChart.Series("p99", d.chartValues.p99,
+
+			p99, err := d.storage.Select(storage.P99MetricName, start, end)
+			if err != nil {
+				log.Printf("failed to select p99 data points: %v\n", err)
+			}
+			d.widgets.percentilesChart.Series("p99", p99,
 				linechart.SeriesCellOpts(d.widgets.p99Legend.cellOpts...),
 			)
 		}

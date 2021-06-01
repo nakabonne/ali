@@ -25,7 +25,7 @@ func navigateCharts(chartFuncs []func()) func(bool) {
 	}
 }
 
-func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Container, dr *drawer, targetURL string, opts attacker.Options) func(*terminalapi.Keyboard) {
+func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Container, dr *drawer, a attacker.Attacker) func(*terminalapi.Keyboard) {
 	funcs := []func(){
 		func() { c.Update(chartID, dr.gridOpts.latency...) },
 		func() { c.Update(chartID, dr.gridOpts.percentiles...) },
@@ -36,7 +36,7 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 		case keyboard.KeyCtrlC, 'q': // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
-			attack(ctx, dr, targetURL, opts)
+			attack(ctx, dr, a)
 		case 'H', 'h': // backwards
 			navigateFunc(true)
 		case 'L', 'l': // forwards
@@ -45,17 +45,17 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 	}
 }
 
-func attack(ctx context.Context, d *drawer, target string, opts attacker.Options) {
+func attack(ctx context.Context, d *drawer, a attacker.Attacker) {
 	if d.chartDrawing.Load() {
 		return
 	}
-	d.doneCh = make(chan struct{})
+	child, cancel := context.WithCancel(ctx)
 
 	// To initialize, run redrawChart on a per-attack basis.
-	go d.appendChartValues(ctx, opts.Rate, opts.Duration)
-	go d.redrawCharts(ctx)
-	go func(ctx context.Context, d *drawer, t string, o attacker.Options) {
-		attacker.Attack(ctx, t, d.chartCh, d.metricsCh, o) // this blocks until attack finishes
-		close(d.doneCh)
-	}(ctx, d, target, opts)
+	go d.redrawCharts(child)
+	go d.redrawGauge(child, a.Duration())
+	go func() {
+		a.Attack(child, d.metricsCh) // this blocks until attack finishes
+		cancel()
+	}()
 }

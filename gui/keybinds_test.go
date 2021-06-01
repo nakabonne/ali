@@ -34,7 +34,7 @@ func TestKeybinds(t *testing.T) {
 					}
 				}
 			}(ctx)
-			f := keybinds(ctx, cancel, nil, nil, "", attacker.Options{})
+			f := keybinds(ctx, cancel, nil, nil, &attacker.FakeAttacker{})
 			f(&terminalapi.Keyboard{Key: tt.key})
 			// If ctx wasn't expired, goleak will find it.
 		})
@@ -208,7 +208,7 @@ func TestAttack(t *testing.T) {
 				},
 				chartDrawing: tt.chartDrawing,
 			}
-			attack(ctx, d, "", attacker.Options{})
+			attack(ctx, d, &attacker.FakeAttacker{})
 		})
 	}
 }
