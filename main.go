@@ -60,7 +60,8 @@ type cli struct {
 	caCert             string
 
 	//options for gui
-	queryRange time.Duration
+	queryRange     time.Duration
+	redrawInterval time.Duration
 
 	debug   bool
 	version bool
@@ -104,7 +105,8 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
-	flagSet.DurationVar(&c.queryRange, "query-range", gui.DefaultQueryRange, "The time range to display data points on the UI")
+	flagSet.DurationVar(&c.queryRange, "query-range", gui.DefaultQueryRange, "The results within the given time range will be drawn on the charts")
+	flagSet.DurationVar(&c.redrawInterval, "redraw-interval", gui.DefaultRedrawInterval, "The time interval to redraw charts")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -152,8 +154,12 @@ func (c *cli) run(args []string) int {
 	}
 	setDebug(nil, c.debug)
 
-	// FIXME: Add redrewInterval option
-	if err := gui.Run(target, s, a, gui.Option{QueryRange: c.queryRange}); err != nil {
+	if err := gui.Run(target, s, a,
+		gui.Option{
+			QueryRange:     c.queryRange,
+			RedrawInternal: c.redrawInterval,
+		},
+	); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
 		c.usage()
 		return 1
@@ -337,6 +343,7 @@ func parseResolvers(addrs string) ([]string, error) {
 // Makes a new file under the ~/.config/ali only when debug use.
 func setDebug(w io.Writer, debug bool) {
 	if !debug {
+		log.SetOutput(io.Discard)
 		return
 	}
 	if w == nil {
