@@ -9,82 +9,8 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/nakabonne/ali/attacker"
+	"github.com/nakabonne/ali/storage"
 )
-
-func TestAppendChartValues(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	tests := []struct {
-		name          string
-		results       []*attacker.Result
-		duration      time.Duration
-		progressGauge Gauge
-	}{
-		{
-			name: "one result received",
-			results: []*attacker.Result{
-				{
-					Latency: 1000000,
-					P50:     500000,
-					P90:     900000,
-					P95:     950000,
-					P99:     990000,
-				},
-			},
-			duration: 1,
-			progressGauge: func() Gauge {
-				g := NewMockGauge(ctrl)
-				g.EXPECT().Percent(gomock.Any()).AnyTimes()
-				return g
-			}(),
-		},
-		{
-			name: "two results received",
-			results: []*attacker.Result{
-				{
-					Latency: 1000000,
-					P50:     500000,
-					P90:     900000,
-					P95:     950000,
-					P99:     990000,
-				},
-				{
-					Latency: 2000000,
-					P50:     1000000,
-					P90:     1800000,
-					P95:     1900000,
-					P99:     1980000,
-				},
-			},
-			duration: 2,
-			progressGauge: func() Gauge {
-				g := NewMockGauge(ctrl)
-				g.EXPECT().Percent(gomock.Any()).AnyTimes()
-				return g
-			}(),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &drawer{
-				widgets:      &widgets{progressGauge: tt.progressGauge},
-				chartCh:      make(chan *attacker.Result),
-				doneCh:       make(chan struct{}),
-				chartDrawing: atomic.NewBool(false),
-			}
-			go d.appendChartValues(ctx, len(tt.results), tt.duration)
-			for _, res := range tt.results {
-				d.chartCh <- res
-			}
-			close(d.doneCh)
-		})
-	}
-}
 
 func TestRedrawCharts(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -95,32 +21,24 @@ func TestRedrawCharts(t *testing.T) {
 
 	tests := []struct {
 		name             string
+		storage          storage.Reader
 		latencyChart     LineChart
 		percentilesChart LineChart
-		latencies        []float64
-		p50              []float64
-		p90              []float64
-		p95              []float64
-		p99              []float64
 	}{
 		{
-			name:      "one result received",
-			latencies: []float64{1},
-			p50:       []float64{0.5},
-			p90:       []float64{0.9},
-			p95:       []float64{0.95},
-			p99:       []float64{0.99},
+			name:    "two data points for each metric",
+			storage: &storage.FakeStorage{Values: []float64{1, 2}},
 			latencyChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("latency", []float64{1.0}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("latency", []float64{1, 2}, gomock.Any()).AnyTimes()
 				return l
 			}(),
 			percentilesChart: func() LineChart {
 				l := NewMockLineChart(ctrl)
-				l.EXPECT().Series("p50", []float64{0.5}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p90", []float64{0.9}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p95", []float64{0.95}, gomock.Any()).AnyTimes()
-				l.EXPECT().Series("p99", []float64{0.99}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p50", []float64{1, 2}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p90", []float64{1, 2}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p95", []float64{1, 2}, gomock.Any()).AnyTimes()
+				l.EXPECT().Series("p99", []float64{1, 2}, gomock.Any()).AnyTimes()
 				return l
 			}(),
 		},
@@ -130,16 +48,9 @@ func TestRedrawCharts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &drawer{
 				widgets:      &widgets{latencyChart: tt.latencyChart, percentilesChart: tt.percentilesChart},
-				chartCh:      make(chan *attacker.Result),
 				doneCh:       make(chan struct{}),
 				chartDrawing: atomic.NewBool(false),
-				chartValues: values{
-					latencies: tt.latencies,
-					p50:       tt.p50,
-					p90:       tt.p90,
-					p95:       tt.p95,
-					p99:       tt.p99,
-				},
+				storage:      tt.storage,
 			}
 			go d.redrawCharts(ctx)
 			close(d.doneCh)

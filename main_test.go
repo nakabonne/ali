@@ -61,6 +61,7 @@ func TestParseFlags(t *testing.T) {
 				noHTTP2:      false,
 				localAddress: "0.0.0.0",
 				resolvers:    "",
+				queryRange:   30 * time.Second,
 			},
 			wantErr: false,
 		},

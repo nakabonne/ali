@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nakabonne/ali/storage"
+
 	flag "github.com/spf13/pflag"
 
 	"github.com/nakabonne/ali/attacker"
@@ -35,27 +37,30 @@ var (
 )
 
 type cli struct {
-	rate         int
-	duration     time.Duration
-	timeout      time.Duration
-	method       string
-	headers      []string
-	body         string
-	bodyFile     string
-	maxBody      int64
-	workers      uint64
-	maxWorkers   uint64
-	connections  int
-	noHTTP2      bool
-	localAddress string
-	noKeepAlive  bool
-	buckets      string
-	resolvers    string
-
+	// options for attacker
+	rate               int
+	duration           time.Duration
+	timeout            time.Duration
+	method             string
+	headers            []string
+	body               string
+	bodyFile           string
+	maxBody            int64
+	workers            uint64
+	maxWorkers         uint64
+	connections        int
+	noHTTP2            bool
+	localAddress       string
+	noKeepAlive        bool
+	buckets            string
+	resolvers          string
 	insecureSkipVerify bool
 	tlsCertFile        string
 	tlsKeyFile         string
 	caCert             string
+
+	//options for gui
+	queryRange time.Duration
 
 	debug   bool
 	version bool
@@ -99,6 +104,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
 	//flagSet.StringVar(&c.buckets, "buckets", "", "Histogram buckets; comma-separated list.")
 	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
+	flagSet.DurationVar(&c.queryRange, "query-range", gui.DefaultQueryRange, "The time range to display data points on the UI")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -131,13 +137,27 @@ func (c *cli) run(args []string) int {
 		c.usage()
 		return 1
 	}
+
+	s, err := storage.NewStorage()
+	if err != nil {
+		fmt.Fprintf(c.stderr, "failed to initialize time-series storage: %v\n", err)
+		c.usage()
+		return 1
+	}
+	a, err := attacker.NewAttacker(s, target, opts)
+	if err != nil {
+		fmt.Fprintf(c.stderr, "failed to initialize attacker: %v\n", err)
+		c.usage()
+		return 1
+	}
 	setDebug(nil, c.debug)
-	if err := gui.Run(target, opts); err != nil {
+
+	// FIXME: Add redrewInterval option
+	if err := gui.Run(target, s, a, gui.Option{QueryRange: c.queryRange}); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
 		c.usage()
 		return 1
 	}
-
 	return 0
 }
 

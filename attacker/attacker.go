@@ -4,12 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
+	"log"
 	"math"
 	"net"
 	"net/http"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
+
+	"github.com/nakabonne/ali/storage"
 )
 
 const (
@@ -24,11 +28,6 @@ const (
 )
 
 var DefaultLocalAddr = net.IPAddr{IP: net.IPv4zero}
-
-type Attacker interface {
-	Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result
-	Stop()
-}
 
 // Options provides optional settings to attack.
 type Options struct {
@@ -52,25 +51,30 @@ type Options struct {
 	CACertificatePool  *x509.CertPool
 	TLSCertificates    []tls.Certificate
 
-	Attacker Attacker
+	Attacker backedAttacker
 }
 
-// Result contains the results of a single HTTP request.
-type Result struct {
-	Latency time.Duration
+type Attacker interface {
+	// Attack keeps the request running for the specified period of time.
+	// Results are sent to the given channel as soon as they arrive.
+	// When the attack is over, it gives back final statistics.
+	// TODO: Use storage instead of metricsCh
+	Attack(ctx context.Context, metricsCh chan *Metrics)
 
-	P50 time.Duration
-	P90 time.Duration
-	P95 time.Duration
-	P99 time.Duration
+	// Rate gives back the rate set to itself.
+	Rate() int
+	// Rate gives back the duration set to itself.
+	Duration() time.Duration
+	// Rate gives back the method set to itself.
+	Method() string
 }
 
-// Attack keeps the request running for the specified period of time.
-// Results are sent to the given channel as soon as they arrive.
-// When the attack is over, it gives back final statistics.
-func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh chan *Metrics, opts Options) {
+func NewAttacker(storage storage.Writer, target string, opts *Options) (Attacker, error) {
 	if target == "" {
-		return
+		return nil, fmt.Errorf("target is required")
+	}
+	if opts == nil {
+		opts = &Options{}
 	}
 	if opts.Method == "" {
 		opts.Method = DefaultMethod
@@ -114,38 +118,111 @@ func Attack(ctx context.Context, target string, resCh chan<- *Result, metricsCh 
 			vegeta.TLSConfig(tlsConfig),
 		)
 	}
+	return &attacker{
+		target:             target,
+		rate:               opts.Rate,
+		duration:           opts.Duration,
+		timeout:            opts.Timeout,
+		method:             opts.Method,
+		body:               opts.Body,
+		maxBody:            opts.MaxBody,
+		header:             opts.Header,
+		workers:            opts.Workers,
+		maxWorkers:         opts.MaxWorkers,
+		keepAlive:          opts.KeepAlive,
+		connections:        opts.Connections,
+		http2:              opts.HTTP2,
+		localAddr:          opts.LocalAddr,
+		buckets:            opts.Buckets,
+		resolvers:          opts.Resolvers,
+		insecureSkipVerify: opts.InsecureSkipVerify,
+		caCertificatePool:  opts.CACertificatePool,
+		tlsCertificates:    opts.TLSCertificates,
+		attacker:           opts.Attacker,
+		storage:            storage,
+	}, nil
+}
 
-	rate := vegeta.Rate{Freq: opts.Rate, Per: time.Second}
+type backedAttacker interface {
+	Attack(vegeta.Targeter, vegeta.Pacer, time.Duration, string) <-chan *vegeta.Result
+	Stop()
+}
+
+type attacker struct {
+	target             string
+	rate               int
+	duration           time.Duration
+	timeout            time.Duration
+	method             string
+	body               []byte
+	maxBody            int64
+	header             http.Header
+	workers            uint64
+	maxWorkers         uint64
+	keepAlive          bool
+	connections        int
+	http2              bool
+	localAddr          net.IPAddr
+	buckets            []time.Duration
+	resolvers          []string
+	insecureSkipVerify bool
+	caCertificatePool  *x509.CertPool
+	tlsCertificates    []tls.Certificate
+
+	attacker backedAttacker
+	storage  storage.Writer
+}
+
+func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
+	rate := vegeta.Rate{Freq: a.rate, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
-		Method: opts.Method,
-		URL:    target,
-		Body:   opts.Body,
-		Header: opts.Header,
+		Method: a.method,
+		URL:    a.target,
+		Body:   a.body,
+		Header: a.header,
 	})
 
 	metrics := &vegeta.Metrics{}
-	if len(opts.Buckets) > 0 {
-		metrics.Histogram = &vegeta.Histogram{Buckets: opts.Buckets}
+	if len(a.buckets) > 0 {
+		metrics.Histogram = &vegeta.Histogram{Buckets: a.buckets}
 	}
 
-	for res := range opts.Attacker.Attack(targeter, rate, opts.Duration, "main") {
+	for res := range a.attacker.Attack(targeter, rate, a.duration, "main") {
 		select {
 		case <-ctx.Done():
-			opts.Attacker.Stop()
+			a.attacker.Stop()
 			return
 		default:
 			metrics.Add(res)
 			m := newMetrics(metrics)
-			resCh <- &Result{
-				Latency: res.Latency,
-				P50:     m.Latencies.P50,
-				P90:     m.Latencies.P90,
-				P95:     m.Latencies.P95,
-				P99:     m.Latencies.P99,
+			err := a.storage.Insert(&storage.Result{
+				Code:      res.Code,
+				Timestamp: res.Timestamp,
+				Latency:   res.Latency,
+				P50:       m.Latencies.P50,
+				P90:       m.Latencies.P90,
+				P95:       m.Latencies.P95,
+				P99:       m.Latencies.P99,
+			})
+			if err != nil {
+				log.Printf("failed to insert results")
+				continue
 			}
 			metricsCh <- m
 		}
 	}
 	metrics.Close()
 	metricsCh <- newMetrics(metrics)
+}
+
+func (a *attacker) Rate() int {
+	return a.rate
+}
+
+func (a *attacker) Duration() time.Duration {
+	return a.duration
+}
+
+func (a *attacker) Method() string {
+	return a.method
 }

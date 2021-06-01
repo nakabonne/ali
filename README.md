@@ -1,7 +1,6 @@
 # ali
-[![codecov.io Code Coverage](https://img.shields.io/codecov/c/github/nakabonne/ali.svg)](https://codecov.io/github/nakabonne/ali?branch=master)
 [![Release](https://img.shields.io/github/release/nakabonne/ali.svg?color=orange)](https://github.com/nakabonne/ali/releases/latest)
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/nakabonne/ali)
+[![Go Reference](https://pkg.go.dev/badge/github.com/nakabonne/ali.svg)](https://pkg.go.dev/github.com/nakabonne/ali)
 
 A load testing tool capable of performing real-time analysis, inspired by [vegeta](https://github.com/tsenart/vegeta) and [jplot](https://github.com/rs/jplot).
 
@@ -68,23 +67,34 @@ Usage:
   ali [flags] <target URL>
 
 Flags:
-  -b, --body string         A request body to be sent.
-  -B, --body-file string    The path to file whose content will be set as the http request body.
-  -c, --connections int     Amount of maximum open idle connections per target host (default 10000)
-      --debug               Run in debug mode.
-  -d, --duration duration   The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
-  -H, --header strings      A request header to be sent. Can be used multiple times to send multiple headers.
-      --local-addr string   Local IP address. (default "0.0.0.0")
-  -M, --max-body int        Max bytes to capture from response bodies. Give -1 for no limit. (default -1)
-  -W, --max-workers uint    Amount of maximum workers to spawn. (default 18446744073709551615)
-  -m, --method string       An HTTP request method for each request. (default "GET")
-      --no-http2            Don't issue HTTP/2 requests to servers which support it.
-  -K, --no-keepalive        Don't use HTTP persistent connection.
-  -r, --rate int            The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
-      --resolvers string    Custom DNS resolver addresses; comma-separated list.
-  -t, --timeout duration    The timeout for each request. 0s means to disable timeouts. (default 30s)
-  -v, --version             Print the current version.
-  -w, --workers uint        Amount of initial workers to spawn. (default 10)
+  -b, --body string            A request body to be sent.
+  -B, --body-file string       The path to file whose content will be set as the http request body.
+      --cacert string          PEM ca certificate file
+      --cert string            PEM encoded tls certificate file to use
+  -c, --connections int        Amount of maximum open idle connections per target host (default 10000)
+      --debug                  Run in debug mode.
+  -d, --duration duration      The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
+  -H, --header stringArray     A request header to be sent. Can be used multiple times to send multiple headers.
+      --insecure               Skip TLS verification
+      --key string             PEM encoded tls private key file to use
+      --local-addr string      Local IP address. (default "0.0.0.0")
+  -M, --max-body int           Max bytes to capture from response bodies. Give -1 for no limit. (default -1)
+  -W, --max-workers uint       Amount of maximum workers to spawn. (default 18446744073709551615)
+  -m, --method string          An HTTP request method for each request. (default "GET")
+      --no-http2               Don't issue HTTP/2 requests to servers which support it.
+  -K, --no-keepalive           Don't use HTTP persistent connection.
+      --query-range duration   The time range to display data points on the UI (default 1m0s)
+  -r, --rate int               The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
+      --resolvers string       Custom DNS resolver addresses; comma-separated list.
+  -t, --timeout duration       The timeout for each request. 0s means to disable timeouts. (default 30s)
+  -v, --version                Print the current version.
+  -w, --workers uint           Amount of initial workers to spawn. (default 10)
+
+Examples:
+  ali --duration=10m --rate=100 http://host.xz
+
+Author:
+  Ryo Nakao <ryo@nakao.dev>
 ```
 
 Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".

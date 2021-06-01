@@ -5,12 +5,37 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"go.uber.org/goleak"
+
+	"github.com/nakabonne/ali/storage"
 )
 
 func TestMain(m *testing.M) {
 	goleak.VerifyTestMain(m)
+}
+
+func TestNewAttacker(t *testing.T) {
+	tests := []struct {
+		name    string
+		target  string
+		opts    Options
+		wantErr bool
+	}{
+		{
+			name:    "no target given",
+			target:  "",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewAttacker(&storage.FakeStorage{}, tt.target, &tt.opts)
+			assert.Equal(t, tt.wantErr, err != nil)
+		})
+	}
 }
 
 func TestAttack(t *testing.T) {
@@ -18,34 +43,23 @@ func TestAttack(t *testing.T) {
 	defer cancel()
 
 	tests := []struct {
-		name         string
-		target       string
-		opts         Options
-		want         *Metrics
-		wantResCount int
+		name    string
+		target  string
+		opts    Options
+		wantErr bool
 	}{
-		{
-			name:   "no target given",
-			target: "",
-			want:   nil,
-		},
 		{
 			name:   "no result given back",
 			target: "http://host.xz",
 			opts: Options{
-				Attacker: &fakeAttacker{},
+				Attacker: &fakeBackedAttacker{},
 			},
-			want: &Metrics{
-				StatusCodes: make(map[string]int),
-				Errors:      []string{},
-			},
-			wantResCount: 0,
 		},
 		{
 			name:   "two result given back",
 			target: "http://host.xz",
 			opts: Options{
-				Attacker: &fakeAttacker{
+				Attacker: &fakeBackedAttacker{
 					results: []*vegeta.Result{
 						{
 							Code: 200,
@@ -56,26 +70,15 @@ func TestAttack(t *testing.T) {
 					},
 				},
 			},
-			want: &Metrics{
-				Requests:   2,
-				Rate:       2,
-				Throughput: 2,
-				Success:    1,
-				StatusCodes: map[string]int{
-					"200": 2,
-				},
-				Errors: []string{},
-			},
-			wantResCount: 2,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resCh := make(chan *Result, 100)
+			a, err := NewAttacker(&storage.FakeStorage{}, tt.target, &tt.opts)
+			require.NoError(t, err)
 			metricsCh := make(chan *Metrics, 100)
-			Attack(ctx, tt.target, resCh, metricsCh, tt.opts)
-			assert.Equal(t, tt.wantResCount, len(resCh))
+			a.Attack(ctx, metricsCh)
 		})
 	}
 }

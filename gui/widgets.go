@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/mum4k/termdash/cell"
 	"github.com/mum4k/termdash/linestyle"
@@ -9,8 +10,6 @@ import (
 	"github.com/mum4k/termdash/widgets/gauge"
 	"github.com/mum4k/termdash/widgets/linechart"
 	"github.com/mum4k/termdash/widgets/text"
-
-	"github.com/nakabonne/ali/attacker"
 )
 
 type LineChart interface {
@@ -53,7 +52,8 @@ type widgets struct {
 	navi          Text
 }
 
-func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
+// Thg given params is used for displayed text.
+func newWidgets(targetURL string, rate int, duration time.Duration, method string) (*widgets, error) {
 	latencyChart, err := newLineChart()
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func newWidgets(targetURL string, opts *attacker.Options) (*widgets, error) {
 		return nil, err
 	}
 
-	paramsText, err := newText(makeParamsText(targetURL, opts))
+	paramsText, err := newText(makeParamsText(targetURL, rate, duration, method))
 	if err != nil {
 		return nil, err
 	}
@@ -163,10 +163,10 @@ func newGauge() (Gauge, error) {
 	)
 }
 
-func makeParamsText(targetURL string, opts *attacker.Options) string {
+func makeParamsText(targetURL string, rate int, duration time.Duration, method string) string {
 	return fmt.Sprintf(`Target: %s
 Rate: %d
 Duration: %v
 Method: %s
-`, targetURL, opts.Rate, opts.Duration, opts.Method)
+`, targetURL, rate, duration, method)
 }
