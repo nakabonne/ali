@@ -140,7 +140,8 @@ func (c *cli) run(args []string) int {
 		return 1
 	}
 
-	s, err := storage.NewStorage()
+	// Data points out of query range get flushed to prevent using heap more than need.
+	s, err := storage.NewStorage(c.queryRange * 2)
 	if err != nil {
 		fmt.Fprintf(c.stderr, "failed to initialize time-series storage: %v\n", err)
 		c.usage()

@@ -42,9 +42,10 @@ type Result struct {
 	P99       time.Duration
 }
 
-func NewStorage() (Storage, error) {
+func NewStorage(partitionDuration time.Duration) (Storage, error) {
 	s, err := tstorage.NewStorage(
 		tstorage.WithLogger(log.Default()),
+		tstorage.WithPartitionDuration(partitionDuration),
 	)
 	if err != nil {
 		return nil, err
