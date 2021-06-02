@@ -8,7 +8,7 @@ builds:
     - freebsd
     - darwin
     - linux
-      #- windows
+    - windows
   goarch:
     - amd64
     - arm
@@ -24,6 +24,10 @@ builds:
   env:
     - CGO_ENABLED=0
   ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+
+archives:
+- replacements:
+    386: 32-bit
 
 checksum:
   name_template: 'checksums.txt'
