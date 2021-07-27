@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/golang/mock v1.4.4
-	github.com/miekg/dns v1.1.17
+	github.com/miekg/dns v1.1.43
 	github.com/mum4k/termdash v0.12.2
 	github.com/nakabonne/tstorage v0.2.0
 	github.com/spf13/pflag v1.0.5
