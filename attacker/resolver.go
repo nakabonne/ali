@@ -8,8 +8,8 @@ import (
 )
 
 type resolver struct {
-	addrs []string
 	idx   uint64
+	addrs []string
 }
 
 func NewResolver(addrs []string) *net.Resolver {
