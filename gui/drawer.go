@@ -199,6 +199,7 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 			// taking the slice of keys and sorting them.
 			codesText := ""
 			var keys []string
+			d.mu.RLock()
 			for k := range m.StatusCodes {
 				keys = append(keys, k)
 			}
@@ -207,6 +208,7 @@ func (d *drawer) redrawMetrics(ctx context.Context) {
 				codesText += fmt.Sprintf(`%q: %d
 `, k, m.StatusCodes[k])
 			}
+			d.mu.RUnlock()
 			d.widgets.statusCodesText.Write(codesText, text.WriteReplace())
 
 			errorsText := ""

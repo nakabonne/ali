@@ -9,6 +9,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
@@ -59,7 +60,7 @@ type Attacker interface {
 	// Results are sent to the given channel as soon as they arrive.
 	// When the attack is over, it gives back final statistics.
 	// TODO: Use storage instead of metricsCh
-	Attack(ctx context.Context, metricsCh chan *Metrics)
+	Attack(ctx context.Context, metricsCh chan *Metrics, mu *sync.RWMutex)
 
 	// Rate gives back the rate set to itself.
 	Rate() int
@@ -173,7 +174,7 @@ type attacker struct {
 	storage  storage.Writer
 }
 
-func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
+func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics, mu *sync.RWMutex) {
 	rate := vegeta.Rate{Freq: a.rate, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: a.method,
@@ -193,7 +194,11 @@ func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
 			a.attacker.Stop()
 			return
 		default:
-			metrics.Add(res)
+			func() {
+				mu.Lock()
+				defer mu.Unlock()
+				metrics.Add(res)
+			}()
 			m := newMetrics(metrics)
 			err := a.storage.Insert(&storage.Result{
 				Code:      res.Code,

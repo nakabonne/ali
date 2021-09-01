@@ -55,7 +55,7 @@ func attack(ctx context.Context, d *drawer, a attacker.Attacker) {
 	go d.redrawCharts(child)
 	go d.redrawGauge(child, a.Duration())
 	go func() {
-		a.Attack(child, d.metricsCh) // this blocks until attack finishes
+		a.Attack(child, d.metricsCh, &d.mu) // this blocks until attack finishes
 		cancel()
 	}()
 }
