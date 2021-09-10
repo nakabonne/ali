@@ -37,6 +37,14 @@ rpm -ivh https://github.com/nakabonne/ali/releases/download/v0.7.2/ali_0.7.2_lin
 pacman -S ali
 ```
 
+**Via APK**
+
+After [enabling the testing repo](https://wiki.alpinelinux.org/wiki/Enable_Community_Repository):
+
+```bash
+apk add ali
+```
+
 **Via Go**
 
 Note that you may have a problem because it downloads an untagged binary.
