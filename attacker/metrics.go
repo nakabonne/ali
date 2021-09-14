@@ -69,6 +69,11 @@ type ByteMetrics struct {
 }
 
 func newMetrics(m *vegeta.Metrics) *Metrics {
+	statusCodes := make(map[string]int, len(m.StatusCodes))
+	for k, v := range m.StatusCodes {
+		statusCodes[k] = v
+	}
+
 	return &Metrics{
 		Latencies: LatencyMetrics{
 			Total: m.Latencies.Total,
@@ -98,7 +103,7 @@ func newMetrics(m *vegeta.Metrics) *Metrics {
 		Rate:        m.Rate,
 		Throughput:  m.Throughput,
 		Success:     m.Success,
-		StatusCodes: m.StatusCodes,
+		StatusCodes: statusCodes,
 		Errors:      m.Errors,
 	}
 }
