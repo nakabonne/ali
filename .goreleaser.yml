@@ -58,8 +58,6 @@ nfpms:
 
 dockers:
   - dockerfile: Dockerfile
-    binaries:
-      - ali
     image_templates:
       - "nakabonne/ali:latest"
       - "nakabonne/ali:{{ .Tag }}"
