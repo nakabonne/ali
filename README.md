@@ -18,6 +18,13 @@ Binary releases are available through [here](https://github.com/nakabonne/ali/re
 brew install nakabonne/ali/ali
 ```
 
+**Via MacPorts**
+
+```bash
+sudo port selfupdate
+sudo port install ali
+```
+
 **Via APT**
 
 ```bash
