@@ -39,7 +39,7 @@ pacman -S ali
 
 **Via APK**
 
-After [enabling the testing repo](https://wiki.alpinelinux.org/wiki/Enable_Community_Repository):
+After [enabling the community repo](https://wiki.alpinelinux.org/wiki/Enable_Community_Repository):
 
 ```bash
 apk add ali
