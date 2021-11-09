@@ -24,6 +24,9 @@ builds:
   env:
     - CGO_ENABLED=0
   ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+  ignore:
+      - goos: windows
+        goarch: arm64
 
 archives:
 - replacements:
