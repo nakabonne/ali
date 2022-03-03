@@ -56,7 +56,7 @@ apk add ali
 
 Note that you may have a problem because it downloads an untagged binary.
 ```bash
-go get github.com/nakabonne/ali
+go install github.com/nakabonne/ali@latest
 ```
 
 **Via Docker**
