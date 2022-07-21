@@ -61,6 +61,13 @@ nfpms:
 
 dockers:
   - dockerfile: Dockerfile
+    goarch: amd64
+    image_templates:
+      - "nakabonne/ali:latest"
+      - "nakabonne/ali:{{ .Tag }}"
+      - "nakabonne/ali:v{{ .Major }}.{{ .Minor }}"
+  - dockerfile: Dockerfile
+    goarch: arm64
     image_templates:
       - "nakabonne/ali:latest"
       - "nakabonne/ali:{{ .Tag }}"
