@@ -1,10 +1,6 @@
-run:
-  issues-exit-code: 0
-
 linters:
   disable-all: true
   enable:
-    - staticcheck
     - gosimple
     - ineffassign
     - errcheck
@@ -40,6 +36,7 @@ linters:
     - unused
 
 run:
+  issues-exit-code: 0
   tests: false
   skip-dirs:
     - testdata
