@@ -21,7 +21,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.52.1
+          version: v1.31
           args: --issues-exit-code=0
           only-new-issues: true
           # Optional: golangci-lint command line arguments.
