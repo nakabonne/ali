@@ -58,6 +58,7 @@ type cli struct {
 	tlsCertFile        string
 	tlsKeyFile         string
 	caCert             string
+	start              bool
 
 	//options for gui
 	queryRange     time.Duration
@@ -100,6 +101,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.StringVar(&c.localAddress, "local-addr", "0.0.0.0", "Local IP address.")
 	flagSet.BoolVar(&c.insecureSkipVerify, "insecure", false, "Skip TLS verification")
 	flagSet.StringVar(&c.caCert, "cacert", "", "PEM ca certificate file")
+	flagSet.BoolVar(&c.start, "start", false, "Start the attack immediately")
 	flagSet.StringVar(&c.tlsCertFile, "cert", "", "PEM encoded tls certificate file to use")
 	flagSet.StringVar(&c.tlsKeyFile, "key", "", "PEM encoded tls private key file to use")
 	// TODO: Re-enable when making it capable of drawing histogram bar chart.
@@ -155,12 +157,12 @@ func (c *cli) run(args []string) int {
 	}
 	setDebug(nil, c.debug)
 
-	if err := gui.Run(target, s, a,
-		gui.Options{
-			QueryRange:     c.queryRange,
-			RedrawInternal: c.redrawInterval,
-		},
-	); err != nil {
+	guiOptions := gui.Options{
+		QueryRange:     c.queryRange,
+		RedrawInternal: c.redrawInterval,
+	}
+
+	if err := gui.Run(target, s, a, guiOptions, c.start); err != nil {
 		fmt.Fprintf(c.stderr, "failed to start application: %s\n", err.Error())
 		c.usage()
 		return 1
