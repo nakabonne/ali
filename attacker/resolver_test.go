@@ -68,7 +68,7 @@ func TestNewResolver(t *testing.T) {
 	}
 
 	if strings.TrimSpace(string(body)) != message {
-		t.Errorf("reponse body mismatch, expected: '%s', but got '%s'", message, body)
+		t.Errorf("response body mismatch, expected: '%s', but got '%s'", message, body)
 	}
 }
 
