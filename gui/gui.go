@@ -34,7 +34,7 @@ type Options struct {
 
 type runner func(ctx context.Context, t terminalapi.Terminal, c *container.Container, opts ...termdash.Option) error
 
-func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, opts Options) error {
+func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, opts Options, start bool) error {
 	var (
 		t   terminalapi.Terminal
 		err error
@@ -48,10 +48,10 @@ func Run(targetURL string, storage storage.Reader, attacker attacker.Attacker, o
 		return fmt.Errorf("failed to generate terminal interface: %w", err)
 	}
 	defer t.Close()
-	return run(t, termdash.Run, targetURL, storage, attacker, opts)
+	return run(t, termdash.Run, targetURL, storage, attacker, opts, start)
 }
 
-func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Reader, a attacker.Attacker, opts Options) error {
+func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Reader, a attacker.Attacker, opts Options, start bool) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -95,6 +95,11 @@ func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Rea
 	go d.redrawMetrics(ctx)
 
 	k := keybinds(ctx, cancel, c, d, a)
+
+	// Start the attack immediately if the start flag is set
+	if start {
+		attack(ctx, d, a)
+	}
 
 	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(opts.RedrawInternal))
 }
