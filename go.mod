@@ -1,6 +1,8 @@
 module github.com/nakabonne/ali
 
-go 1.18
+go 1.24.0
+
+toolchain go1.24.5
 
 require (
 	github.com/golang/mock v1.6.0
@@ -25,9 +27,9 @@ require (
 	github.com/nsf/termbox-go v0.0.0-20201107200903-9b52a5faed9e // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/term v0.39.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
