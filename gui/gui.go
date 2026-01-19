@@ -96,7 +96,11 @@ func run(t terminalapi.Terminal, r runner, targetURL string, storage storage.Rea
 
 	k := keybinds(ctx, cancel, c, d, a)
 
-	return r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(opts.RedrawInternal))
+	err = r(ctx, t, c, termdash.KeyboardSubscriber(k), termdash.RedrawInterval(opts.RedrawInternal))
+	if exportErr := d.exportError(); exportErr != nil {
+		return exportErr
+	}
+	return err
 }
 
 // newChartWithLegends creates a chart with legends at the bottom.

@@ -1,0 +1,2 @@
+id,timestamp,latency_ns,url,method,status_code
+22222222-2222-2222-2222-222222222222,2021-03-13T15:20:43+09:00,,https://example.com/,GET,200

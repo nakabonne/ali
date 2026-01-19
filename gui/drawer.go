@@ -33,6 +33,9 @@ type drawer struct {
 	mu      sync.RWMutex
 	metrics *attacker.Metrics
 	storage storage.Reader
+
+	errMu     sync.Mutex
+	exportErr error
 }
 
 // redrawCharts sets the values held by itself as chart values, at the specified interval as redrawInterval.
@@ -233,4 +236,21 @@ func (d *drawer) updateMetrics(ctx context.Context) {
 			d.mu.Unlock()
 		}
 	}
+}
+
+func (d *drawer) setExportErr(err error) {
+	if err == nil {
+		return
+	}
+	d.errMu.Lock()
+	if d.exportErr == nil {
+		d.exportErr = err
+	}
+	d.errMu.Unlock()
+}
+
+func (d *drawer) exportError() error {
+	d.errMu.Lock()
+	defer d.errMu.Unlock()
+	return d.exportErr
 }

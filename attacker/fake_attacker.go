@@ -13,8 +13,8 @@ type FakeAttacker struct {
 	method   string
 }
 
-func (f *FakeAttacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
-
+func (f *FakeAttacker) Attack(ctx context.Context, metricsCh chan *Metrics) error {
+	return nil
 }
 
 func (f *FakeAttacker) Rate() int {

@@ -36,7 +36,7 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 		case keyboard.KeyCtrlC, 'q': // Quit
 			cancel()
 		case keyboard.KeyEnter: // Attack
-			attack(ctx, dr, a)
+			attack(ctx, cancel, dr, a)
 		case 'H', 'h': // backwards
 			navigateFunc(true)
 		case 'L', 'l': // forwards
@@ -45,17 +45,22 @@ func keybinds(ctx context.Context, cancel context.CancelFunc, c *container.Conta
 	}
 }
 
-func attack(ctx context.Context, d *drawer, a attacker.Attacker) {
+func attack(ctx context.Context, cancelParent context.CancelFunc, d *drawer, a attacker.Attacker) {
 	if d.chartDrawing.Load() {
 		return
 	}
-	child, cancel := context.WithCancel(ctx)
+	child, cancelChild := context.WithCancel(ctx)
 
 	// To initialize, run redrawChart on a per-attack basis.
 	go d.redrawCharts(child)
 	go d.redrawGauge(child, a.Duration())
 	go func() {
-		a.Attack(child, d.metricsCh) // this blocks until attack finishes
-		cancel()
+		if err := a.Attack(child, d.metricsCh); err != nil {
+			d.setExportErr(err)
+			cancelChild()
+			cancelParent()
+			return
+		}
+		cancelChild()
 	}()
 }

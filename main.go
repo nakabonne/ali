@@ -24,6 +24,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/nakabonne/ali/attacker"
+	"github.com/nakabonne/ali/export"
 	"github.com/nakabonne/ali/gui"
 )
 
@@ -34,6 +35,9 @@ var (
 	version = "unversioned"
 	commit  = "?"
 	date    = "?"
+
+	runGUI      = gui.Run
+	newAttacker = attacker.NewAttacker
 )
 
 type cli struct {
@@ -62,6 +66,9 @@ type cli struct {
 	//options for gui
 	queryRange     time.Duration
 	redrawInterval time.Duration
+
+	// options for export
+	exportTo string
 
 	debug   bool
 	version bool
@@ -107,6 +114,7 @@ func parseFlags(stdout, stderr io.Writer) (*cli, error) {
 	flagSet.StringVar(&c.resolvers, "resolvers", "", "Custom DNS resolver addresses; comma-separated list.")
 	flagSet.DurationVar(&c.queryRange, "query-range", gui.DefaultQueryRange, "The results within the given time range will be drawn on the charts")
 	flagSet.DurationVar(&c.redrawInterval, "redraw-interval", gui.DefaultRedrawInterval, "Specify how often it redraws the screen")
+	flagSet.StringVar(&c.exportTo, "export-to", "", "Export results to the given directory")
 	flagSet.Usage = c.usage
 	if err := flagSet.Parse(os.Args[1:]); err != nil {
 		if !errors.Is(err, flag.ErrHelp) {
@@ -140,6 +148,27 @@ func (c *cli) run(args []string) int {
 		return 1
 	}
 
+	var exporter *export.FileExporter
+	if c.exportTo != "" {
+		if c.exportTo == "-" {
+			fmt.Fprintf(c.stderr, "export path %q is not supported\n", c.exportTo)
+			return 1
+		}
+		if _, err := os.Stat(c.exportTo); err == nil {
+			fmt.Fprintf(c.stderr, "export path %q already exists\n", c.exportTo)
+			return 1
+		} else if !os.IsNotExist(err) {
+			fmt.Fprintf(c.stderr, "failed to stat export path %q: %v\n", c.exportTo, err)
+			return 1
+		}
+		if err := os.MkdirAll(c.exportTo, 0o755); err != nil {
+			fmt.Fprintf(c.stderr, "failed to create export directory %q: %v\n", c.exportTo, err)
+			return 1
+		}
+		exporter = export.NewFileExporter(c.exportTo)
+	}
+	opts.Exporter = exporter
+
 	// Data points out of query range get flushed to prevent using heap more than need.
 	s, err := storage.NewStorage(c.queryRange * 2)
 	if err != nil {
@@ -147,7 +176,7 @@ func (c *cli) run(args []string) int {
 		c.usage()
 		return 1
 	}
-	a, err := attacker.NewAttacker(s, target, opts)
+	a, err := newAttacker(s, target, opts)
 	if err != nil {
 		fmt.Fprintf(c.stderr, "failed to initialize attacker: %v\n", err)
 		c.usage()
@@ -155,7 +184,7 @@ func (c *cli) run(args []string) int {
 	}
 	setDebug(nil, c.debug)
 
-	if err := gui.Run(target, s, a,
+	if err := runGUI(target, s, a,
 		gui.Options{
 			QueryRange:     c.queryRange,
 			RedrawInternal: c.redrawInterval,

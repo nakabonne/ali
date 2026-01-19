@@ -1,0 +1,43 @@
+{
+  "target": {
+    "url": "https://example.com/",
+    "method": "GET"
+  },
+  "parameters": {
+    "rate": 50,
+    "duration_seconds": 2
+  },
+  "timing": {
+    "earliest": "2021-03-13T15:20:43+09:00",
+    "latest": "2021-03-13T15:20:45+09:00"
+  },
+  "requests": {
+    "count": 100,
+    "success_ratio": 0.98
+  },
+  "throughput": 48.24,
+  "latency_ms": {
+    "total": 44000,
+    "mean": 447.88,
+    "p50": 445.46,
+    "p90": 806.58,
+    "p95": 849.89,
+    "p99": 935.49,
+    "max": 965.4,
+    "min": 55.32
+  },
+  "bytes": {
+    "in": {
+      "total": 2325200,
+      "mean": 23252
+    },
+    "out": {
+      "total": 0,
+      "mean": 0
+    }
+  },
+  "status_codes": {
+    "200": 98,
+    "500": 2
+  }
+}

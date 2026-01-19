@@ -1,76 +1,72 @@
+version: "2"
+
 linters:
-  disable-all: true
+  default: none
   enable:
-    - gosimple
     - ineffassign
     - errcheck
     - misspell
     - unparam
-    - gofmt
-    - goimports
-    - deadcode
     - nestif
     - govet
-    - golint
+    - revive
     - prealloc
     - depguard
     - dogsled
     - dupl
     - goconst
-    - gocritic
     - gocyclo
     - goprintffuncname
     - gosec
     - nakedret
     - rowserrcheck
-    - scopelint
-    - structcheck
-    - stylecheck
-    - typecheck
+    - staticcheck
     - unconvert
-    - varcheck
     - exhaustive
-    - exportloopref
-    - goerr113
-    - gofumpt
+    - copyloopvar
+    - err113
     - unused
+  exclusions:
+    paths:
+      - testdata
+    rules:
+      - linters:
+        - gosec
+        text: "G204: Subprocess launched"
+      - linters:
+        - err113
+        text: "err113: do not define dynamic errors"
+      - linters:
+        - staticcheck
+        text: "ST1003: struct field Https"
+      - linters:
+        - staticcheck
+        text: "ST1003: struct field Id"
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 100
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    misspell:
+      locale: US
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - gofumpt
+  exclusions:
+    paths:
+      - testdata
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/nakabonne/ali
 
 run:
   issues-exit-code: 0
   tests: false
-  skip-dirs:
-    - testdata
-
-issues:
-  exclude-rules:
-    - linters:
-      - gosec
-      text: "G204: Subprocess launched"
-    - linters:
-      - goerr113
-      text: "err113: do not define dynamic errors"
-    - linters:
-      - stylecheck
-      text: "ST1003: struct field Https"
-    - linters:
-      - stylecheck
-      text: "ST1003: struct field Id"
-
-linters-settings:
-  dupl:
-    threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  goimports:
-    local-prefixes: github.com/nakabonne/ali
-  golint:
-    min-confidence: 0.3
-  maligned:
-    suggest-new: true
-  misspell:
-    locale: US
-
