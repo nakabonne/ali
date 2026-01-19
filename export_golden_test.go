@@ -75,7 +75,7 @@ func TestExportGoldenResultsCSVNaNInf(t *testing.T) {
 }
 
 func TestExportGoldenSummaryJSONSchema(t *testing.T) {
-	path := filepath.Join("testdata", "export", "basic", "summary.json")
+	path := filepath.Join("testdata", "export", "basic", "summary-00000000-0000-0000-0000-000000000000.json")
 	content, err := os.ReadFile(path)
 	require.NoError(t, err)
 

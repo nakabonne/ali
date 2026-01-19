@@ -96,8 +96,8 @@ func TestFileExporter_Basic(t *testing.T) {
 	gotResults := readFile(t, filepath.Join(dir, resultsFilename))
 	require.Equal(t, string(wantResults), string(gotResults))
 
-	wantSummary := readGolden(t, filepath.Join("..", "testdata", "export", "basic", "summary.json"))
-	gotSummary := readFile(t, filepath.Join(dir, summaryFilename))
+	wantSummary := readGolden(t, filepath.Join("..", "testdata", "export", "basic", "summary-00000000-0000-0000-0000-000000000000.json"))
+	gotSummary := readFile(t, filepath.Join(dir, summaryFilename("00000000-0000-0000-0000-000000000000")))
 	require.Equal(t, string(wantSummary), string(gotSummary))
 }
 
@@ -247,7 +247,7 @@ func TestFileExporter_AtomicResultsWrite(t *testing.T) {
 
 	got := readFile(t, resultsPath)
 	require.Equal(t, string(original), string(got))
-	_, err = os.Stat(filepath.Join(dir, summaryFilename))
+	_, err = os.Stat(filepath.Join(dir, summaryFilename("cccccccc-cccc-cccc-cccc-cccccccccccc")))
 	require.True(t, os.IsNotExist(err))
 }
 

@@ -18,7 +18,6 @@ import (
 
 const (
 	resultsFilename = "results.csv"
-	summaryFilename = "summary.json"
 )
 
 var resultsHeader = []string{"id", "timestamp", "latency_ns", "url", "method", "status_code"}
@@ -148,7 +147,7 @@ func (e *FileExporter) StartRun(meta Meta) (*Run, error) {
 		return nil, errors.New("export directory is required")
 	}
 	resultsPath := filepath.Join(e.dir, resultsFilename)
-	summaryPath := filepath.Join(e.dir, summaryFilename)
+	summaryPath := filepath.Join(e.dir, summaryFilename(meta.ID))
 
 	tmpFile, err := os.CreateTemp(e.dir, ".results.csv.")
 	if err != nil {
@@ -287,7 +286,7 @@ func (r *Run) Abort() error {
 
 func writeSummary(path string, summary Summary) error {
 	dir := filepath.Dir(path)
-	tmpFile, err := os.CreateTemp(dir, ".summary.json.")
+	tmpFile, err := os.CreateTemp(dir, ".summary.")
 	if err != nil {
 		return fmt.Errorf("failed to create temp summary file in %q: %w", dir, err)
 	}
@@ -326,4 +325,8 @@ func formatLatencyNS(v float64) string {
 		return ""
 	}
 	return strconv.FormatInt(int64(v), 10)
+}
+
+func summaryFilename(id string) string {
+	return fmt.Sprintf("summary-%s.json", id)
 }

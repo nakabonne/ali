@@ -4,7 +4,7 @@
 
 Add an export feature that persists load test results for downstream processing:
 - Export all data points to `results.csv` in a stable schema.
-- Export a summary to `summary.json`.
+- Export a summary to `summary-<id>.json`.
 
 ## Deliverables
 
@@ -12,7 +12,7 @@ Add an export feature that persists load test results for downstream processing:
 - When `--export-to <dir>` is provided,
   - Create `<dir>`
   - Export all generated data points as CSV to `<dir>/results.csv` at the end of the run.
-  - Write the processed data to `<dir>/summary.json`.
+  - Write the processed data to `<dir>/summary-<id>.json`.
 - Add unit tests
 
 ## Acceptance Criteria
@@ -22,7 +22,7 @@ Add an export feature that persists load test results for downstream processing:
 1. Running the tool **without** `--export-to` produces **no CSV file** and behaves as before.
 2. Running with `--export-to results.csv` creates
    - `results.csv` with schema as defined in the [Schema](#schema) section. 
-   - `summary.json` with schema as defined in the [Schema](#schema) section. 
+   - `summary-<id>.json` with schema as defined in the [Schema](#schema) section. 
 3. If `--export-to <path>` points to an existing file:
    - The command fails with a non-zero exit code before rendering TUI
    - It does not modify the file.
@@ -66,7 +66,7 @@ CSV Formatting Rules:
 - UTF-8 encoding.
 - Header row included.
 
-### summary.json
+### summary-<id>.json
 
 ```json
 {
@@ -128,7 +128,7 @@ id,timestamp,latency_ns,url,method,status_code
 4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12.084+09:00,965397887,https://nakabonne.dev/,GET,200
 ```
 
-#### ./results/summary.json
+#### ./results/summary-<id>.json
 
 ```json
 {

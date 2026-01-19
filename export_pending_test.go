@@ -91,7 +91,7 @@ func TestExportCLI_CreateDirAndFiles(t *testing.T) {
 	exitCode := c.run([]string{"https://example.com/"})
 	require.Equal(t, 0, exitCode)
 	require.FileExists(t, filepath.Join(resultsDir, "results.csv"))
-	require.FileExists(t, filepath.Join(resultsDir, "summary.json"))
+	require.FileExists(t, filepath.Join(resultsDir, "summary-00000000-0000-0000-0000-000000000000.json"))
 }
 
 func TestExportCLI_ExistingDirFails(t *testing.T) {
