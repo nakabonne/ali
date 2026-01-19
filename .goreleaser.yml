@@ -33,7 +33,7 @@ builds:
         goarch: arm
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ if eq .Arch \"386\" }}32-bit{{ else }}{{ .Arch }}{{ end }}"
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ if eq .Arch \"arm\" }}armv{{ .Arm }}{{ else if eq .Arch \"386\" }}32-bit{{ else }}{{ .Arch }}{{ end }}"
 
 checksum:
   name_template: 'checksums.txt'
