@@ -1,3 +1,5 @@
+version: 2
+
 before:
   hooks:
     - go mod tidy
@@ -27,10 +29,11 @@ builds:
   ignore:
       - goos: windows
         goarch: arm64
+      - goos: windows
+        goarch: arm
 
 archives:
-- replacements:
-    386: 32-bit
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ if eq .Arch \"386\" }}32-bit{{ else }}{{ .Arch }}{{ end }}"
 
 checksum:
   name_template: 'checksums.txt'
@@ -44,7 +47,7 @@ changelog:
     - '^test:'
 
 brews:
-  - tap:
+  - repository:
       owner: nakabonne
       name: homebrew-ali
     homepage: 'https://github.com/nakabonne/ali'
