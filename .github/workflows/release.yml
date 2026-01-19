@@ -3,6 +3,7 @@ on:
   push:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -21,6 +22,6 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN_WITH_REPO_PERM }}
