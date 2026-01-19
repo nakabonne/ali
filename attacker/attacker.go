@@ -2,8 +2,10 @@ package attacker
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math"
@@ -13,6 +15,7 @@ import (
 
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 
+	"github.com/nakabonne/ali/export"
 	"github.com/nakabonne/ali/storage"
 )
 
@@ -52,6 +55,9 @@ type Options struct {
 	TLSCertificates    []tls.Certificate
 
 	Attacker backedAttacker
+
+	Exporter    *export.FileExporter
+	IDGenerator func() string
 }
 
 type Attacker interface {
@@ -59,7 +65,7 @@ type Attacker interface {
 	// Results are sent to the given channel as soon as they arrive.
 	// When the attack is over, it gives back final statistics.
 	// TODO: Use storage instead of metricsCh
-	Attack(ctx context.Context, metricsCh chan *Metrics)
+	Attack(ctx context.Context, metricsCh chan *Metrics) error
 
 	// Rate gives back the rate set to itself.
 	Rate() int
@@ -140,6 +146,8 @@ func NewAttacker(storage storage.Writer, target string, opts *Options) (Attacker
 		tlsCertificates:    opts.TLSCertificates,
 		attacker:           opts.Attacker,
 		storage:            storage,
+		exporter:           opts.Exporter,
+		idGenerator:        opts.IDGenerator,
 	}, nil
 }
 
@@ -171,9 +179,12 @@ type attacker struct {
 
 	attacker backedAttacker
 	storage  storage.Writer
+
+	exporter    *export.FileExporter
+	idGenerator func() string
 }
 
-func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
+func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) error {
 	rate := vegeta.Rate{Freq: a.rate, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: a.method,
@@ -186,12 +197,34 @@ func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
 	if len(a.buckets) > 0 {
 		metrics.Histogram = &vegeta.Histogram{Buckets: a.buckets}
 	}
+	idGenerator := a.idGenerator
+	if idGenerator == nil {
+		idGenerator = defaultIDGenerator
+	}
+
+	var runExporter *export.Run
+	if a.exporter != nil {
+		var err error
+		runExporter, err = a.exporter.StartRun(export.Meta{
+			ID:        idGenerator(),
+			TargetURL: a.target,
+			Method:    a.method,
+			Rate:      a.rate,
+			Duration:  a.duration,
+		})
+		if err != nil {
+			return err
+		}
+	}
 
 	for res := range a.attacker.Attack(targeter, rate, a.duration, "main") {
 		select {
 		case <-ctx.Done():
 			a.attacker.Stop()
-			return
+			if runExporter != nil {
+				_ = runExporter.Abort()
+			}
+			return nil
 		default:
 			metrics.Add(res)
 			m := newMetrics(metrics)
@@ -208,15 +241,51 @@ func (a *attacker) Attack(ctx context.Context, metricsCh chan *Metrics) {
 				log.Printf("failed to insert results")
 				continue
 			}
+			if runExporter != nil {
+				if err := runExporter.WriteResult(export.Result{
+					Timestamp:  res.Timestamp,
+					LatencyNS:  float64(res.Latency.Nanoseconds()),
+					URL:        a.target,
+					Method:     a.method,
+					StatusCode: res.Code,
+				}); err != nil {
+					_ = runExporter.Abort()
+					return err
+				}
+			}
 			metricsCh <- m
 		}
 	}
 	metrics.Close()
-	metricsCh <- newMetrics(metrics)
+	finalMetrics := newMetrics(metrics)
+	metricsCh <- finalMetrics
+	if runExporter != nil {
+		if err := runExporter.Close(newSummary(a.target, a.method, a.rate, a.duration, finalMetrics)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (a *attacker) Rate() int {
 	return a.rate
+}
+
+func defaultIDGenerator() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "00000000-0000-0000-0000-000000000000"
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+
+	part1 := binary.BigEndian.Uint32(b[0:4])
+	part2 := binary.BigEndian.Uint16(b[4:6])
+	part3 := binary.BigEndian.Uint16(b[6:8])
+	part4 := binary.BigEndian.Uint16(b[8:10])
+	part5 := uint64(b[10])<<40 | uint64(b[11])<<32 | uint64(b[12])<<24 | uint64(b[13])<<16 | uint64(b[14])<<8 | uint64(b[15])
+
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", part1, part2, part3, part4, part5)
 }
 
 func (a *attacker) Duration() time.Duration {

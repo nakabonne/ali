@@ -208,7 +208,7 @@ func TestAttack(t *testing.T) {
 				},
 				chartDrawing: tt.chartDrawing,
 			}
-			attack(ctx, d, &attacker.FakeAttacker{})
+			attack(ctx, cancel, d, &attacker.FakeAttacker{})
 		})
 	}
 }

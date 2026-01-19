@@ -78,7 +78,8 @@ func TestAttack(t *testing.T) {
 			a, err := NewAttacker(&storage.FakeStorage{}, tt.target, &tt.opts)
 			require.NoError(t, err)
 			metricsCh := make(chan *Metrics, 100)
-			a.Attack(ctx, metricsCh)
+			err = a.Attack(ctx, metricsCh)
+			require.NoError(t, err)
 		})
 	}
 }

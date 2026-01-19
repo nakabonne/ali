@@ -65,6 +65,7 @@ func TestParseFlags(t *testing.T) {
 				resolvers:      "",
 				queryRange:     30 * time.Second,
 				redrawInterval: 250 * time.Millisecond,
+				exportTo:       "",
 			},
 			wantErr: false,
 		},
