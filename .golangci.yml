@@ -64,7 +64,8 @@ formatters:
       - testdata
   settings:
     goimports:
-      local-prefixes: github.com/nakabonne/ali
+      local-prefixes:
+        - github.com/nakabonne/ali
 
 run:
   issues-exit-code: 0
