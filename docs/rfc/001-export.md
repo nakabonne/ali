@@ -121,40 +121,55 @@ ali --export-to ./results/
 
 ```csv
 id,timestamp,latency_ns,url,method,status_code
-4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12+09:00,18234567,https://nakabonne.dev/,GET,200
-4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12.020+09:00,44900123,https://nakabonne.dev/,GET,200
-4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12.041+09:00,935489752,https://nakabonne.dev/,GET,500
-4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12.063+09:00,55320758,https://nakabonne.dev/,GET,200
-4c3f2a5c-1d5b-4c0b-9d7f-8f0c0a3c6a2e,2026-01-15T13:45:12.084+09:00,965397887,https://nakabonne.dev/,GET,200
+f48ff413-c446-4021-8a28-f153ee2e1151,2026-01-19T13:44:38.779088333+09:00,199035250,https://example.com/,GET,200
+f48ff413-c446-4021-8a28-f153ee2e1151,2026-01-19T13:44:39.779554166+09:00,10721500,https://example.com/,GET,200
+f48ff413-c446-4021-8a28-f153ee2e1151,2026-01-19T13:44:40.779522791+09:00,11019792,https://example.com/,GET,200
 ```
 
 #### ./results/summary-<id>.json
 
 ```json
 {
-  "target": { "url": "https://nakabonne.dev/", "method": "GET" },
-  "parameters": { "rate": 50, "duration_seconds": 2},
-  "timing": {
-    "earliest": "2021-03-13T15:20:43+09:00",
-    "latest": "2021-03-13T15:20:45+09:00"
+  "target": {
+    "url": "https://example.com/",
+    "method": "GET"
   },
-  "requests": { "count": 100, "success_ratio": 1.0 },
-  "throughput": 48.24,
+  "parameters": {
+    "rate": 1,
+    "duration_seconds": 3
+  },
+  "timing": {
+    "earliest": "2026-01-19T13:44:38.779088333+09:00",
+    "latest": "2026-01-19T13:44:40.779522791+09:00"
+  },
+  "requests": {
+    "count": 3,
+    "success_ratio": 1
+  },
+  "throughput": 1.4914582322715022,
   "latency_ms": {
-    "total": 44000,
-    "mean": 447.88,
-    "p50": 445.46,
-    "p90": 806.58,
-    "p95": 849.89,
-    "p99": 935.49,
-    "max": 965.40,
-    "min": 55.32
+    "total": 220.776542,
+    "mean": 73.59218,
+    "p50": 11.019792,
+    "p90": 199.03525,
+    "p95": 199.03525,
+    "p99": 199.03525,
+    "max": 199.03525,
+    "min": 10.7215
   },
   "bytes": {
-    "in": { "total": 2325200, "mean": 23252 },
-    "out": { "total": 0, "mean": 0 }
+    "in": {
+      "total": 70137,
+      "mean": 23379
+    },
+    "out": {
+      "total": 0,
+      "mean": 0
+    }
   },
-  "status_codes": { "200": 100 }
+  "status_codes": {
+    "200": 3
+  }
 }
 ```
 

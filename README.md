@@ -89,6 +89,7 @@ Flags:
   -c, --connections int            Amount of maximum open idle connections per target host (default 10000)
       --debug                      Run in debug mode.
   -d, --duration duration          The amount of time to issue requests to the targets. Give 0s for an infinite attack. (default 10s)
+      --export-to string           Export results to the given directory
   -H, --header stringArray         A request header to be sent. Can be used multiple times to send multiple headers.
       --insecure                   Skip TLS verification
       --key string                 PEM encoded tls private key file to use
@@ -100,7 +101,7 @@ Flags:
   -K, --no-keepalive               Don't use HTTP persistent connection.
       --query-range duration       The results within the given time range will be drawn on the charts (default 30s)
   -r, --rate int                   The request rate per second to issue against the targets. Give 0 then it will send requests as fast as possible. (default 50)
-      --redraw-interval duration   The time interval to redraw charts (default 250ms)
+      --redraw-interval duration   Specify how often it redraws the screen (default 250ms)
       --resolvers string           Custom DNS resolver addresses; comma-separated list.
   -t, --timeout duration           The timeout for each request. 0s means to disable timeouts. (default 30s)
   -v, --version                    Print the current version.
@@ -173,6 +174,16 @@ This will help you during long tests.
 With the help of [mum4k/termdash](https://github.com/mum4k/termdash) can be used intuitively.
 
 ![Screenshot](images/mouse-support.gif)
+
+### Export results
+
+You can persist load test results for downstream processing.
+
+```bash
+ali --export-to ./results/
+```
+
+See [here](./docs/export.md) more details.
 
 ## Acknowledgements
 This project would not have been possible without the effort of many individuals and projects but especially [vegeta](https://github.com/tsenart/vegeta) for the inspiration and powerful API.
