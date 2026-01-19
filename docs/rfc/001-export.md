@@ -56,7 +56,7 @@ Columns:
 |------------------|---------|----------|-------------|
 | `id`             | string  | yes      | Unique identifier for the run (UUID) |
 | `timestamp`      | string  | yes      | RFC3339 |
-| `latency_ns`     | int     | yes      | Metric name (e.g., `latency_ms_p50`, `rps`, `errors_total`) |
+| `latency_ns`     | int     | yes      | Request latency in nanoseconds |
 | `url`            | string  | yes      | The target URL. |
 | `method`         | string  | yes      | The HTTP method. (e.g. GET, POST) |
 | `status_code`    | int     | yes      | HTTP status code |
