@@ -20,7 +20,7 @@ Add an export feature that persists load test results for downstream processing:
 ### Core behavior
 
 1. Running the tool **without** `--export-to` produces **no CSV file** and behaves as before.
-2. Running with `--export-to results.csv` creates
+2. Running with `--export-to <dir>` creates the following files under `<dir>`:
    - `results.csv` with schema as defined in the [Schema](#schema) section. 
    - `summary-<id>.json` with schema as defined in the [Schema](#schema) section. 
 3. If `--export-to <path>` points to an existing file:
